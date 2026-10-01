@@ -8,7 +8,7 @@
 [![Generic badge](https://img.shields.io/badge/MSVC-17+-blue.svg)](https://shields.io/)
 [![Conan Center](https://img.shields.io/conan/v/sqlgen)](https://conan.io/center/recipes/sqlgen)
 
-**📖 Documentation**: [Click here](https://getml.github.io/sqlgen/)
+**📖 Documentation**: [Click here](https://munich-data-engineering.github.io/sqlgen/)
 
 ![image](docs/content/sqlgen.png)
 
@@ -477,7 +477,7 @@ get_people(conn, "Homer' OR '1'='1");  // SQL injection attempt
 
 ## Documentation
 
-For detailed documentation, visit our [documentation page](https://getml.github.io/sqlgen/).
+For detailed documentation, visit our [documentation page](https://munich-data-engineering.github.io/sqlgen/).
 
 ## Contributing
 
