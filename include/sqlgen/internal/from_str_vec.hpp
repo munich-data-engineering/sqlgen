@@ -14,6 +14,7 @@
 #include "../Result.hpp"
 #include "../parsing/Parser.hpp"
 #include "call_destructors_where_necessary.hpp"
+#include "ptr_cast.hpp"
 
 namespace sqlgen::internal {
 
@@ -72,7 +73,7 @@ template <class T>
 Result<T> from_str_vec(
     const std::vector<std::optional<std::string>>& _str_vec) {
   alignas(T) unsigned char buf[sizeof(T)]{};
-  auto ptr = rfl::internal::ptr_cast<T*>(&buf);
+  auto ptr = ptr_cast<T*>(&buf);
   auto view = rfl::to_view(*ptr);
   const auto [err, num_fields_assigned] = read_into_view(_str_vec, &view);
   if (err) [[unlikely]] {
