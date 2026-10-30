@@ -38,7 +38,7 @@ struct DeleteFrom {
   }
 
   template <class ConditionType>
-  friend auto operator|(const DeleteFrom<ValueType, WhereType>& _d,
+  friend auto operator|(const DeleteFrom<ValueType, WhereType>&,
                         const Where<ConditionType>& _where) {
     static_assert(std::is_same_v<WhereType, Nothing>,
                   "You cannot call where(...) twice (but you can apply more "

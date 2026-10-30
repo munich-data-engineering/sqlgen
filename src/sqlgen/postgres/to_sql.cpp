@@ -931,8 +931,11 @@ std::string write_to_sql(const dynamic::Write& _stmt) noexcept {
   const auto colnames = internal::strings::join(
       ", ",
       internal::collect::vector(_stmt.columns | transform(wrap_in_quotes)));
+  #pragma GCC diagnostic push
+  #pragma GCC diagnostic ignored "-Wpedantic"
   return "COPY " + schema + "." + table + "(" + colnames +
          ") FROM STDIN WITH DELIMITER '\t' NULL '\e' CSV QUOTE '\a';";
+  #pragma GCC diagnostic pop
 }
 
 }  // namespace sqlgen::postgres

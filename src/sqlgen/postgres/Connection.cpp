@@ -130,13 +130,11 @@ Result<Nothing> Connection::insert_impl(
 
   const auto sql = to_sql_impl(_stmt);
 
-  return PostgresV2Result::make(PQprepare(conn_.ptr(), name.c_str(),
-                                          sql.c_str(), _data.at(0).size(),
-                                          nullptr))
+  return PostgresV2Result::make(
+             PQprepare(conn_.ptr(), name.c_str(), sql.c_str(),
+                       static_cast<int>(_data.at(0).size()), nullptr))
       .and_then([&](auto&& res) -> Result<Nothing> {
-        const auto status = PQresultStatus(res.ptr());
-
-        if (status != PGRES_COMMAND_OK) {
+        if (PQresultStatus(res.ptr()) != PGRES_COMMAND_OK) {
           return error("Generating prepared statement for '" + sql +
                        "' failed: " + PQresultErrorMessage(res.ptr()));
         }
@@ -160,7 +158,7 @@ Result<Nothing> Connection::insert_impl(
           }
 
           try {
-            const auto res = PostgresV2Result(PQexecPrepared(
+            const auto result = PostgresV2Result(PQexecPrepared(
                 conn_.ptr(),         // conn
                 name.c_str(),        // stmtName
                 n_params,            // nParams
@@ -170,11 +168,9 @@ Result<Nothing> Connection::insert_impl(
                 0                    // resultFormat
                 ));
 
-            const auto status = PQresultStatus(res.ptr());
-
-            if (status != PGRES_COMMAND_OK) {
+            if (PQresultStatus(result.ptr()) != PGRES_COMMAND_OK) {
               const auto err = error(std::string("Executing INSERT failed: ") +
-                                     PQresultErrorMessage(res.ptr()));
+                                     PQresultErrorMessage(result.ptr()));
               execute("DEALLOCATE " + name + ";");
               return err;
             }
@@ -212,7 +208,10 @@ std::string Connection::to_buffer(
   const auto edit_field =
       [](const std::optional<std::string>& _field) -> std::string {
     if (!_field) {
+      #pragma GCC diagnostic push
+      #pragma GCC diagnostic ignored "-Wpedantic"
       return "\e";
+      #pragma GCC diagnostic pop
     }
     if (_field->find("\t") != std::string::npos) {
       return "\a" + *_field + "\a";

@@ -12,7 +12,7 @@ namespace sqlgen::mysql {
 Result<Nothing> exec(const Ref<MYSQL>& _conn,
                      const std::string& _sql) noexcept {
   const auto err = mysql_real_query(_conn.get(), _sql.c_str(),
-                                    static_cast<int>(_sql.size()));
+                                    _sql.size());
 
   if (err) {
     return make_error(_conn);

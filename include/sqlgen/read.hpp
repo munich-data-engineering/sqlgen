@@ -66,7 +66,7 @@ struct Read {
   }
 
   template <class ConditionType>
-  friend auto operator|(const Read& _r, const Where<ConditionType>& _where) {
+  friend auto operator|(const Read&, const Where<ConditionType>& _where) {
     static_assert(std::is_same_v<WhereType, Nothing>,
                   "You cannot call where(...) twice (but you can apply more "
                   "than one condition by combining them with && or ||).");

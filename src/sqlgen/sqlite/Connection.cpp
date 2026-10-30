@@ -20,18 +20,18 @@ Result<Nothing> Connection::actual_insert(
     const std::vector<std::vector<std::optional<std::string>>>& _data,
     sqlite3_stmt* _stmt) const noexcept {
   for (const auto& row : _data) {
-    const auto num_cols = static_cast<int>(row.size());
+    const std::size_t num_cols = row.size();
 
-    for (int i = 0; i < num_cols; ++i) {
+    for (std::size_t i = 0; i < num_cols; ++i) {
       if (row[i]) {
         const auto res =
-            sqlite3_bind_text(_stmt, i + 1, row[i]->c_str(),
+            sqlite3_bind_text(_stmt, static_cast<int>(i + 1), row[i]->c_str(),
                               static_cast<int>(row[i]->size()), SQLITE_STATIC);
         if (res != SQLITE_OK) {
           return error(sqlite3_errmsg(conn_.get()));
         }
       } else {
-        const auto res = sqlite3_bind_null(_stmt, i + 1);
+        const auto res = sqlite3_bind_null(_stmt, static_cast<int>(i + 1));
         if (res != SQLITE_OK) {
           return error(sqlite3_errmsg(conn_.get()));
         }
@@ -108,11 +108,12 @@ Result<Ref<Iterator>> Connection::read_impl(
 
   sqlite3_stmt* p_stmt = nullptr;
 
-  sqlite3_prepare_v2(conn_.get(), /* Database handle */
-                     sql.c_str(), /* SQL statement, UTF-8 encoded */
-                     sql.size(),  /* Maximum length of zSql in bytes. */
-                     &p_stmt,     /* OUT: Statement handle */
-                     nullptr      /* OUT: Pointer to unused portion of zSql */
+  sqlite3_prepare_v2(
+      conn_.get(),                  /* Database handle */
+      sql.c_str(),                  /* SQL statement, UTF-8 encoded */
+      static_cast<int>(sql.size()), /* Maximum length of zSql in bytes. */
+      &p_stmt,                      /* OUT: Statement handle */
+      nullptr                       /* OUT: Pointer to unused portion of zSql */
   );
 
   if (!p_stmt) {
@@ -127,11 +128,12 @@ Result<Connection::StmtPtr> Connection::prepare_statement(
     const std::string& _sql) const noexcept {
   sqlite3_stmt* p_stmt = nullptr;
 
-  sqlite3_prepare_v2(conn_.get(),  /* Database handle */
-                     _sql.c_str(), /* SQL statement, UTF-8 encoded */
-                     _sql.size(),  /* Maximum length of zSql in bytes. */
-                     &p_stmt,      /* OUT: Statement handle */
-                     nullptr       /* OUT: Pointer to unused portion of zSql */
+  sqlite3_prepare_v2(
+      conn_.get(),                   /* Database handle */
+      _sql.c_str(),                  /* SQL statement, UTF-8 encoded */
+      static_cast<int>(_sql.size()), /* Maximum length of zSql in bytes. */
+      &p_stmt,                       /* OUT: Statement handle */
+      nullptr /* OUT: Pointer to unused portion of zSql */
   );
 
   if (!p_stmt) {

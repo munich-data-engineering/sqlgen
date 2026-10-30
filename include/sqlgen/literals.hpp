@@ -8,7 +8,7 @@
 namespace sqlgen::literals {
 
 template <rfl::internal::StringLiteral _name>
-auto operator"" _c() {
+auto operator""_c() {
   return Col<_name>{};
 }
 

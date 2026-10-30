@@ -38,21 +38,21 @@ Result<std::vector<std::vector<std::optional<std::string>>>> Iterator::next(
     const int num_rows = PQntuples(_res.ptr());
     const int num_cols = PQnfields(_res.ptr());
 
-    std::vector<std::vector<std::optional<std::string>>> vec(num_rows);
+    std::vector<std::vector<std::optional<std::string>>> vec(static_cast<std::size_t>(num_rows));
 
     for (int i = 0; i < num_rows; ++i) {
-      std::vector<std::optional<std::string>> row(num_cols);
+      std::vector<std::optional<std::string>> row(static_cast<std::size_t>(num_cols));
 
       for (int j = 0; j < num_cols; ++j) {
         const bool is_null = PQgetisnull(_res.ptr(), i, j);
         if (is_null) {
-          row[j] = std::nullopt;
+          row[static_cast<std::size_t>(j)] = std::nullopt;
         } else {
-          row[j] = std::string(PQgetvalue(_res.ptr(), i, j));
+          row[static_cast<std::size_t>(j)] = std::string(PQgetvalue(_res.ptr(), i, j));
         }
       }
 
-      vec[i] = std::move(row);
+      vec[static_cast<std::size_t>(i)] = std::move(row);
     }
 
     return vec;

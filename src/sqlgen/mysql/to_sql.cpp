@@ -34,8 +34,7 @@ std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept;
 std::string create_as_to_sql(const dynamic::CreateAs& _stmt) noexcept;
 
 std::string date_plus_duration_to_sql(
-    const dynamic::Operation::DatePlusDuration& _stmt,
-    const size_t _ix = 0) noexcept;
+    const dynamic::Operation::DatePlusDuration& _stmt) noexcept;
 
 std::string delete_from_to_sql(const dynamic::DeleteFrom& _stmt) noexcept;
 
@@ -382,8 +381,7 @@ std::string create_table_to_sql(const dynamic::CreateTable& _stmt) noexcept {
 }
 
 std::string date_plus_duration_to_sql(
-    const dynamic::Operation::DatePlusDuration& _stmt,
-    const size_t _ix) noexcept {
+    const dynamic::Operation::DatePlusDuration& _stmt) noexcept {
   using namespace std::ranges::views;
   std::stringstream stream;
   stream << internal::strings::join(

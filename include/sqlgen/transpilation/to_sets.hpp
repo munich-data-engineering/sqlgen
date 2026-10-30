@@ -58,7 +58,7 @@ struct ToSet<T, Set<transpilation::Col<_name1>, transpilation::Col<_name2>>> {
       "A column referenced in your SET query is not convertible to the column "
       "it is being assigned to.");
 
-  dynamic::Update::Set operator()(const auto& _set) const {
+  dynamic::Update::Set operator()(const auto&) const {
     return dynamic::Update::Set{
         .col = dynamic::Column{.name = _name1.str()},
         .to = dynamic::Column{.name = _name2.str()},
