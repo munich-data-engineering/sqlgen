@@ -23,7 +23,9 @@
 #include "../dynamic/Union.hpp"
 #include "../dynamic/Write.hpp"
 #include "../internal/iterator_t.hpp"
+#include "../internal/supports_collections.hpp"
 #include "../internal/to_container.hpp"
+#include "../internal/to_str.hpp"
 #include "../internal/write_or_insert.hpp"
 #include "../is_connection.hpp"
 #include "../sqlgen_api.hpp"
@@ -98,6 +100,12 @@ class SQLGEN_API Connection {
   template <class T>
   static std::optional<std::string> to_param(const std::optional<T>& _val) {
     return _val ? to_param(*_val) : std::nullopt;
+  }
+
+  template <class T, class Allocator>
+  static std::optional<std::string> to_param(
+      const std::vector<T, Allocator>& _val) {
+    return internal::to_str(_val);
   }
 
   Result<Nothing> execute_params(
@@ -177,6 +185,9 @@ template <class ValueType>
 struct IteratorType<ValueType, postgres::Connection> {
   using Type = Iterator<ValueType, postgres::Iterator>;
 };
+
+template <>
+struct supports_collections<postgres::Connection> : std::true_type {};
 
 static_assert(is_connection<postgres::Connection>,
               "Must fulfill the is_connection concept.");

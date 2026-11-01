@@ -87,6 +87,19 @@ struct Parser {
       return error("Unsupported type.");
     }
   }
+
+  static Result<Nothing> write_to_vector(duckdb_vector _vector, idx_t _index,
+                                         const T& _value) {
+    if constexpr (std::is_arithmetic_v<Type>) {
+      static_cast<Type*>(duckdb_vector_get_data(_vector))[_index] = _value;
+      return Nothing{};
+
+    } else {
+      static_assert(rfl::always_false_v<T>,
+                    "Unsupported DuckDB data chunk value type.");
+      return error("Unsupported DuckDB data chunk value type.");
+    }
+  }
 };
 
 }  // namespace sqlgen::duckdb::parsing

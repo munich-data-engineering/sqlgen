@@ -33,6 +33,13 @@ struct Parser<std::string> {
                ? Result<Nothing>(Nothing{})
                : Result<Nothing>(error("Could not append string value."));
   }
+
+  static Result<Nothing> write_to_vector(duckdb_vector _vector, idx_t _index,
+                                         const std::string& _value) {
+    duckdb_vector_assign_string_element_len(_vector, _index, _value.data(),
+                                            _value.size());
+    return Nothing{};
+  }
 };
 
 }  // namespace sqlgen::duckdb::parsing

@@ -37,6 +37,13 @@ struct Parser<EnumT> {
                ? Result<Nothing>(Nothing{})
                : Result<Nothing>(error("Could not append string value."));
   }
+
+  static Result<Nothing> write_to_vector(duckdb_vector _vector, idx_t _index,
+                                         const EnumT& _value) {
+    static_cast<uint8_t*>(duckdb_vector_get_data(_vector))[_index] =
+        static_cast<uint8_t>(_value);
+    return Nothing{};
+  }
 };
 
 }  // namespace sqlgen::duckdb::parsing

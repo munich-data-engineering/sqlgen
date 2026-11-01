@@ -10,11 +10,13 @@
 #include <utility>
 
 #include "../Ref.hpp"
+#include "../transpilation/is_vector.hpp"
 #include "ColumnData.hpp"
 #include "DuckDBResult.hpp"
 #include "cast_duckdb_type.hpp"
 #include "check_duckdb_type.hpp"
 #include "chunk_ptrs_t.hpp"
+#include "read_list_vector.hpp"
 
 namespace sqlgen::duckdb {
 
@@ -42,7 +44,25 @@ struct MakeChunkPtrs<rfl::Tuple<ColumnData<Ts, ColNames>...>> {
 
     auto vec = duckdb_data_chunk_get_vector(_chunk, _i);
 
-    if (check_duckdb_type<T>(actual_duckdb_type)) {
+    if constexpr (transpilation::is_vector_v<T>) {
+      if (actual_duckdb_type != DUCKDB_TYPE_LIST ||
+          !check_list_vector_type<T>(vec)) {
+        throw std::runtime_error("Wrong type in field '" + ColName().str() +
+                                 "'. Expected a DuckDB LIST.");
+      }
+      auto values =
+          Ref<std::vector<T>>::make(duckdb_data_chunk_get_size(_chunk));
+      const auto validity = duckdb_vector_get_validity(vec);
+      for (idx_t i = 0; i < values->size(); ++i) {
+        if (!validity || duckdb_validity_row_is_valid(validity, i)) {
+          (*values)[i] = read_list_vector_value<T>(vec, i).value();
+        }
+      }
+      return ColumnData<T, ColName>{.vec = vec,
+                                    .data = values->data(),
+                                    .validity = validity,
+                                    .ptr = values.ptr()};
+    } else if (check_duckdb_type<T>(actual_duckdb_type)) {
       return ColumnData<T, ColName>{
           .vec = vec,
           .data = static_cast<T*>(duckdb_vector_get_data(vec)),

@@ -33,6 +33,15 @@ struct Parser<rfl::Timestamp<_format>> {
                ? Result<Nothing>(Nothing{})
                : Result<Nothing>(error("Could not append timestamp value."));
   }
+
+  static Result<Nothing> write_to_vector(
+      duckdb_vector _vector, idx_t _index,
+      const rfl::Timestamp<_format>& _value) {
+    static_cast<duckdb_timestamp*>(duckdb_vector_get_data(_vector))[_index] =
+        duckdb_timestamp{
+            .micros = static_cast<int64_t>(_value.to_time_t()) * 1000000};
+    return Nothing{};
+  }
 };
 
 }  // namespace sqlgen::duckdb::parsing
