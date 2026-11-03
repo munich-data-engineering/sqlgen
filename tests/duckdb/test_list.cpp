@@ -20,7 +20,7 @@ struct ListTable {
 TEST(duckdb, native_list_round_trip) {
   EXPECT_EQ(
       sqlgen::duckdb::to_sql(sqlgen::create_table<ListTable>),
-      R"(CREATE TABLE IF NOT EXISTS "ListTable" ("id" INTEGER NOT NULL, "numbers" INTEGER[] NOT NULL, "labels" TEXT[] NOT NULL, "nested" INTEGER[][] NOT NULL, "nullable_list" INTEGER[], "nullable_elements" INTEGER[] NOT NULL);)");
+      R"(CREATE TABLE IF NOT EXISTS "ListTable"("id" INTEGER NOT NULL, "numbers" INTEGER[] NOT NULL, "labels" TEXT[] NOT NULL, "nested" INTEGER[][] NOT NULL, "nullable_list" INTEGER[], "nullable_elements" INTEGER[] NOT NULL);)");
 
   const auto conn = sqlgen::duckdb::connect().value();
   ASSERT_TRUE(sqlgen::create_table<ListTable>(conn));
