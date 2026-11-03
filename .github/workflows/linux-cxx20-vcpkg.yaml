@@ -1,9 +1,9 @@
-name: linux-cxx20-vcpkg 
+name: linux-cxx20-vcpkg
 
 on: [push, pull_request]
 
 
-env: 
+env:
     VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
             db: postgres
           - compiler: llvm
             compiler-version: 16
-            db: sqlite 
+            db: sqlite
           - compiler: llvm
             compiler-version: 18
             db: sqlite
@@ -46,7 +46,7 @@ jobs:
             db: sqlite
           - compiler: llvm
             compiler-version: 16
-            db: mysql 
+            db: mysql
           - compiler: llvm
             compiler-version: 18
             db: mysql
@@ -80,7 +80,7 @@ jobs:
     concurrency:
       group: ci-${{ github.ref }}-${{ github.job }}-${{ matrix.compiler }}-${{ matrix.compiler-version }}-${{ matrix.db }}
       cancel-in-progress: true
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -105,7 +105,7 @@ jobs:
           sudo apt update
           sudo apt install -y ninja-build ${{ matrix.additional-dep }}
       - name: Compile
-        if: matrix.db == 'postgres' 
+        if: matrix.db == 'postgres'
         run: |
           if [[ "${{ matrix.compiler }}" == "llvm" ]]; then
             export CC=clang-${{ matrix.compiler-version }}
@@ -117,10 +117,10 @@ jobs:
           sudo ln -s $(which ccache) /usr/local/bin/$CC
           sudo ln -s $(which ccache) /usr/local/bin/$CXX
           $CXX --version
-          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_SQLITE3=OFF 
+          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_SQLITE3=OFF
           cmake --build build
       - name: Compile
-        if: matrix.db == 'duckdb' 
+        if: matrix.db == 'duckdb'
         run: |
           if [[ "${{ matrix.compiler }}" == "llvm" ]]; then
             export CC=clang-${{ matrix.compiler-version }}
@@ -135,7 +135,7 @@ jobs:
           cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_DUCKDB=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_SQLITE3=OFF
           cmake --build build
       - name: Compile
-        if: matrix.db == 'sqlite' 
+        if: matrix.db == 'sqlite'
         run: |
           if [[ "${{ matrix.compiler }}" == "llvm" ]]; then
             export CC=clang-${{ matrix.compiler-version }}
@@ -147,10 +147,10 @@ jobs:
           sudo ln -s $(which ccache) /usr/local/bin/$CC
           sudo ln -s $(which ccache) /usr/local/bin/$CXX
           $CXX --version
-          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_CHECK_HEADERS=ON 
+          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_CHECK_HEADERS=ON
           cmake --build build
       - name: Compile
-        if: matrix.db == 'mysql' 
+        if: matrix.db == 'mysql'
         run: |
           if [[ "${{ matrix.compiler }}" == "llvm" ]]; then
             export CC=clang-${{ matrix.compiler-version }}
@@ -162,14 +162,14 @@ jobs:
           sudo ln -s $(which ccache) /usr/local/bin/$CC
           sudo ln -s $(which ccache) /usr/local/bin/$CXX
           $CXX --version
-          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_MYSQL=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_SQLITE3=OFF -DBUILD_SHARED_LIBS=ON -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic 
+          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_MYSQL=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_SQLITE3=OFF -DBUILD_SHARED_LIBS=ON -DVCPKG_TARGET_TRIPLET=x64-linux-dynamic
           cmake --build build
       - name: Set up postgres
-        if: matrix.db == 'postgres' 
+        if: matrix.db == 'postgres'
         run: |
           sudo systemctl start postgresql.service
           sudo -u postgres psql -c "ALTER USER postgres PASSWORD 'password';"
-      - name: Set up mysql 
+      - name: Set up mysql
         if: matrix.db == 'mysql'
         run: |
           sudo systemctl start mysql
