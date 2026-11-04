@@ -1,4 +1,4 @@
-∂# `sqlgen::duckdb`
+# `sqlgen::duckdb`
 
 The `sqlgen::duckdb` module provides a type-safe and efficient interface for interacting with DuckDB databases. It implements the core database operations through a connection-based API with support for prepared statements, transactions, and efficient data iteration.
 
