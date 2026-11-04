@@ -9,6 +9,7 @@
 #include "../Result.hpp"
 #include "../dynamic/Type.hpp"
 #include "../dynamic/types.hpp"
+#include "../internal/get_type_name.hpp"
 #include "../transpilation/has_reflection_method.hpp"
 #include "Parser_base.hpp"
 
@@ -135,7 +136,7 @@ struct Parser {
       for (std::size_t i = 0; i < std::size(values); ++i) {
         enum_names[i] = values[i].first;
       }
-      constexpr auto org_name = rfl::internal::get_type_name_str_view<T>();
+      constexpr auto org_name = internal::get_type_name_str_view<T>();
       static_assert(org_name.size() < 64,
                     "Enum type exceeds type level. If it's defined in a nested "
                     "namespace, consider moving it up to a higher level.");
