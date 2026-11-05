@@ -61,13 +61,11 @@ Result<Nothing> Connection::actual_insert(
       }
     }
 
-    auto err = mysql_stmt_bind_param(_stmt, bind.data());
-    if (err) {
+    if (auto err = mysql_stmt_bind_param(_stmt, bind.data()); err) {
       return make_error(conn_);
     }
 
-    err = mysql_stmt_execute(_stmt);
-    if (err) {
+    if (auto err = mysql_stmt_execute(_stmt); err) {
       return make_error(conn_);
     }
   }
@@ -114,7 +112,7 @@ typename Connection::ConnPtr Connection::make_conn(
   const auto res = mysql_real_connect(
       shared_ptr.get(), _credentials.host.c_str(), _credentials.user.c_str(),
       _credentials.password.c_str(), _credentials.dbname.c_str(),
-      _credentials.port, _credentials.unix_socket.c_str(),
+      static_cast<uint>(_credentials.port), _credentials.unix_socket.c_str(),
       CLIENT_MULTI_STATEMENTS);
 
   if (!res) {
@@ -142,7 +140,7 @@ Result<Ref<Iterator>> Connection::read_impl(
   const auto sql =
       _query.visit([](const auto& _q) { return mysql::to_sql_impl(_q); });
   const auto err =
-      mysql_real_query(conn_.get(), sql.c_str(), static_cast<int>(sql.size()));
+      mysql_real_query(conn_.get(), sql.c_str(), sql.size());
   if (err) {
     return make_error(conn_);
   }

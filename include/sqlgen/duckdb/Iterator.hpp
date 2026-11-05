@@ -39,7 +39,7 @@ class Iterator {
   Iterator(const std::string& _query, const ConnPtr& _conn)
       : res_(DuckDBResult::make(_query, _conn)),
         conn_(_conn),
-        current_batch_(get_next_batch(res_, _conn)),
+        current_batch_(get_next_batch(res_)),
         ix_(0) {}
 
   ~Iterator() = default;
@@ -57,7 +57,7 @@ class Iterator {
   Iterator<T>& operator++() noexcept {
     ++ix_;
     if (ix_ >= current_batch_->size()) {
-      current_batch_ = get_next_batch(res_, conn_);
+      current_batch_ = get_next_batch(res_);
       ix_ = 0;
     }
     return *this;
@@ -67,7 +67,7 @@ class Iterator {
 
  private:
   static Ref<std::vector<Result<T>>> get_next_batch(
-      const Result<ResultPtr>& _result_ptr, const ConnPtr& _conn) noexcept {
+      const Result<ResultPtr>& _result_ptr) noexcept {
     return _result_ptr
         .and_then([&](const auto& _res) -> Result<Ref<std::vector<Result<T>>>> {
           duckdb_data_chunk chunk = duckdb_fetch_chunk(_res->res());

@@ -65,7 +65,7 @@ add_library(sqlgen::sqlgen ALIAS sqlgen)
 if (MSVC)
     target_compile_options(sqlgen PRIVATE 
         $<$<CONFIG:Debug>:
-            -Wall
+            -Wall -Werror
         >
         $<$<CONFIG:Release>:
             -DNDEBUG
@@ -74,7 +74,7 @@ if (MSVC)
 else()
     target_compile_options(sqlgen PRIVATE
         $<$<CONFIG:Debug>:
-            -Wall -Wextra -Wpedantic -Wshadow -Wconversion
+            -Wall -Wextra -Wpedantic -Wshadow -Wconversion -Werror
         >
         $<$<CONFIG:Release>:
             -DNDEBUG
