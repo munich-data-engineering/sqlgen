@@ -8,6 +8,7 @@
 
 #include "../../Result.hpp"
 #include "../../transpilation/is_nullable.hpp"
+#include "../set_null.hpp"
 #include "Parser_base.hpp"
 
 namespace sqlgen::duckdb::parsing {
@@ -38,6 +39,16 @@ struct Parser<T> {
                  : Result<Nothing>(error("Could not append null value."));
     }
     return Parser<std::remove_cvref_t<T>>::write(*_ptr, _appender);
+  }
+
+  static Result<Nothing> write_to_vector(duckdb_vector _vector, idx_t _index,
+                                         const T& _value) {
+    if (!_value) {
+      set_null(_vector, _index);
+      return Nothing{};
+    }
+    return Parser<typename Type::value_type>::write_to_vector(_vector, _index,
+                                                              *_value);
   }
 };
 

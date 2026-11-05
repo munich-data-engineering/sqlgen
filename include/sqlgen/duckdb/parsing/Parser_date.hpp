@@ -35,6 +35,14 @@ struct Parser<Date> {
                ? Result<Nothing>(Nothing{})
                : Result<Nothing>(error("Could not append date value."));
   }
+
+  static Result<Nothing> write_to_vector(duckdb_vector _vector, idx_t _index,
+                                         const Date& _value) {
+    static_cast<duckdb_date*>(duckdb_vector_get_data(_vector))[_index] =
+        duckdb_date{
+            .days = static_cast<int32_t>(_value.to_time_t() / seconds_per_day)};
+    return Nothing{};
+  }
 };
 
 }  // namespace sqlgen::duckdb::parsing

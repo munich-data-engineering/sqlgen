@@ -59,6 +59,7 @@ Welcome to the sqlgen documentation. This guide provides detailed information ab
   {{< card link="dynamic" title="sqlgen::Dynamic" icon="book-open" subtitle="How to define custom SQL types not natively supported by sqlgen.">}}
   {{< card link="foreign_key" title="sqlgen::ForeignKey" icon="book-open" subtitle="How to establish referential integrity between tables.">}}
   {{< card link="json" title="sqlgen::JSON" icon="book-open" subtitle="How to store and work with JSON fields.">}}
+  {{< card link="list" title="std::vector" icon="book-open" subtitle="How to store std::vector fields as native lists and arrays (DuckDB, PostgreSQL).">}}
   {{< card link="pattern" title="sqlgen::Pattern" icon="book-open" subtitle="How to add regex pattern validation to avoid SQL injection.">}}
   {{< card link="timestamp" title="sqlgen::Timestamp" icon="book-open" subtitle="How timestamps work in sqlgen.">}}
   {{< card link="unique" title="sqlgen::Unique" icon="book-open" subtitle="How to enforce uniqueness constraints on table columns.">}}

@@ -11,5 +11,6 @@
 #include "Parser_smart_ptr.hpp"
 #include "Parser_string.hpp"
 #include "Parser_timestamp.hpp"
+#include "Parser_vector.hpp"
 
 #endif

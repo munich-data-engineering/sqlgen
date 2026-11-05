@@ -7,6 +7,7 @@
 #include "Ref.hpp"
 #include "Result.hpp"
 #include "internal/is_range.hpp"
+#include "internal/supports_collections.hpp"
 #include "is_connection.hpp"
 #include "limit.hpp"
 #include "offset.hpp"
@@ -24,6 +25,7 @@ template <class ContainerType, class WhereType, class OrderByType,
 auto read_impl(const Ref<Connection>& _conn, const WhereType& _where,
                const LimitType& _limit, const OffsetType& _offset) {
   using ValueType = transpilation::value_t<ContainerType>;
+  internal::assert_collections_supported<Connection, ValueType>();
   const auto query =
       transpilation::read_to_select_from<ValueType, WhereType, OrderByType,
                                          LimitType, OffsetType>(_where, _limit, _offset);

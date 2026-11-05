@@ -12,6 +12,7 @@
 
 #include "internal/batch_size.hpp"
 #include "internal/has_constraint.hpp"
+#include "internal/supports_collections.hpp"
 #include "internal/to_str_vec.hpp"
 #include "is_connection.hpp"
 #include "transpilation/to_insert_or_write.hpp"
@@ -26,6 +27,8 @@ Result<Ref<Connection>> insert_impl(const Ref<Connection>& _conn,
                                     bool _or_replace) {
   using T =
       std::remove_cvref_t<typename std::iterator_traits<ItBegin>::value_type>;
+
+  internal::assert_collections_supported<Connection, T>();
 
   const auto insert_stmt =
       transpilation::to_insert_or_write<T, dynamic::Insert>(_or_replace);

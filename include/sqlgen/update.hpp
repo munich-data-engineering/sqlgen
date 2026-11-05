@@ -6,6 +6,7 @@
 
 #include "Ref.hpp"
 #include "Result.hpp"
+#include "internal/supports_collections.hpp"
 #include "is_connection.hpp"
 #include "transpilation/to_update.hpp"
 #include "where.hpp"
@@ -17,6 +18,7 @@ template <class ValueType, class SetsType, class WhereType, class Connection>
 Result<Ref<Connection>> update_impl(const Ref<Connection>& _conn,
                                     const SetsType& _sets,
                                     const WhereType& _where) {
+  internal::assert_collections_supported<Connection, ValueType>();
   const auto query =
       transpilation::to_update<ValueType, SetsType, WhereType>(_sets, _where);
   return _conn->execute(_conn->to_sql(query)).transform([&](const auto&) {
