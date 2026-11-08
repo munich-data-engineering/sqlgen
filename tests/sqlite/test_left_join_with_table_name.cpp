@@ -47,8 +47,8 @@ TEST(sqlite, test_left_join_with_table_name) {
   const auto get_people_with_pets =
       select_from<Person>(col<"first_name", "Person"> | as<"first_name">,
                           col<"last_name", "Person"> | as<"last_name">,
-                          col<"name", "t2"> | as<"pet_name">) |
-      left_join<Pet, "t2">(col<"id", "Pet"> == col<"owner_id", "Pet">) |
+                          col<"name", "Pet"> | as<"pet_name">) |
+      left_join<Pet, "">(col<"id", "Person"> == col<"owner_id", "Pet">) |
       order_by(col<"id", "Person">) | to<std::vector<PersonWithPet>>;
 
   const auto result = sqlite::connect()
@@ -58,7 +58,7 @@ TEST(sqlite, test_left_join_with_table_name) {
                           .value();
 
   const std::string expected_query =
-      R"(SELECT Person."first_name" AS "first_name", Person."last_name" AS "last_name", t2."name" AS "pet_name" FROM "Person" LEFT JOIN "Pet" t2 ON Person."id" = t2."owner_id" ORDER BY Person."id")";
+      R"(SELECT Person."first_name" AS "first_name", Person."last_name" AS "last_name", Pet."name" AS "pet_name" FROM "Person" LEFT JOIN "Pet"  ON Person."id" = Pet."owner_id" ORDER BY Person."id")";
   const std::string expected_json =
       R"([{"first_name":"Homer","last_name":"Simpson","pet_name":"Santa's Little Helper"},{"first_name":"Marge","last_name":"Simpson"},{"first_name":"Bart","last_name":"Simpson"},{"first_name":"Lisa","last_name":"Simpson","pet_name":"Snowball"}])";
 

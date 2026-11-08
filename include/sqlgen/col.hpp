@@ -5,6 +5,7 @@
 #include <rfl.hpp>
 #include <string>
 
+#include "sqlgen/internal/get_member_ptr_name.hpp"
 #include "transpilation/As.hpp"
 #include "transpilation/Col.hpp"
 #include "transpilation/Condition.hpp"

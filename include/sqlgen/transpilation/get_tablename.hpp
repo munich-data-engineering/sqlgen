@@ -17,11 +17,11 @@ consteval std::string_view get_tablename_str_view() noexcept {
   using Type = std::remove_cvref_t<T>;
 
   constexpr bool has_tablename = requires {
-    { Type::tablename } -> std::convertible_to<std::string>;
+    { Type::tablename } -> std::convertible_to<std::string_view>;
   };
 
   constexpr bool has_viewname = requires {
-    { Type::viewname } -> std::convertible_to<std::string>;
+    { Type::viewname } -> std::convertible_to<std::string_view>;
   };
 
   if constexpr (has_tablename) {

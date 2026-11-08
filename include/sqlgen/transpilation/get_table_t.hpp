@@ -12,12 +12,26 @@
 #include "../internal/get_name_from_literal.hpp"
 #include "TableWrapper.hpp"
 #include "get_tablename.hpp"
+#include "wrap_in_optional_t.hpp"
 
 namespace sqlgen::transpilation {
 
+template <class T>
+struct RemoveWrapInOptional {
+  using Type = T;
+};
+
+template <class T, class U>
+struct RemoveWrapInOptional<WrapInOptional<T, U>> {
+  using Type = typename WrapInOptional<T, U>::NamedTupleType;
+};
+
+template <class T>
+using remove_wrap_in_optional_t = typename RemoveWrapInOptional<T>::Type;
+
 template <class Alias, class _TableType, class _AliasType>
 struct PairWrapper {
-  using TableType = _TableType;
+  using TableType = remove_wrap_in_optional_t<_TableType>;
   using AliasType = _AliasType;
 
   template <class OtherTableType, class OtherAliasType>

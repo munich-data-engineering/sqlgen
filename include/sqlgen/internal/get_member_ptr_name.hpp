@@ -65,7 +65,7 @@ consteval auto get_member_ptr_name() {
   using Type = ptr_type_t<decltype(ptr)>;
   using StructType = struct_type_t<decltype(ptr)>;
   constexpr auto name = get_member_ptr_name_str_view<StructType, ptr>();
-  return rfl::StringLiteral<name.size() + 1>(name);
+  return rfl::internal::StringLiteral<name.size() + 1>(name);
 }
 
 }  // namespace sqlgen::internal
