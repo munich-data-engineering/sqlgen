@@ -39,6 +39,14 @@ consteval std::string_view get_tablename_str_view() noexcept {
 }
 
 template <class T>
+consteval auto get_tablename_str_lit() {
+  constexpr auto name = get_tablename_str_view<T>();
+  return [&]<auto... Ns>(std::index_sequence<Ns...>) {
+    return rfl::internal::StringLiteral<sizeof...(Ns) + 1>{name[Ns]...};
+  }(std::make_index_sequence<name.size()>{});
+}
+
+template <class T>
 std::string get_tablename() noexcept {
   return std::string(get_tablename_str_view<T>());
 }

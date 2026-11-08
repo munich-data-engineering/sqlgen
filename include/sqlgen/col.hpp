@@ -15,6 +15,7 @@
 #include "transpilation/Set.hpp"
 #include "transpilation/Value.hpp"
 #include "transpilation/conditions.hpp"
+#include "transpilation/get_tablename.hpp"
 #include "transpilation/is_duration.hpp"
 #include "transpilation/to_transpilation_type.hpp"
 
@@ -222,6 +223,11 @@ struct Col {
     }
   }
 };
+
+template <auto ptr>
+const auto col2 = Col<internal::get_member_ptr_name<ptr>(),
+                      transpilation::get_tablename_str_lit<
+                          internal::struct_type_t<decltype(ptr)>>()>{};
 
 template <rfl::internal::StringLiteral _name,
           rfl::internal::StringLiteral _alias = "">
