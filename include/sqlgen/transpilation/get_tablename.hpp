@@ -1,25 +1,19 @@
 #ifndef SQLGEN_TRANSPILATION_GET_TABLENAME_HPP_
 #define SQLGEN_TRANSPILATION_GET_TABLENAME_HPP_
 
-#include <rfl.hpp>
+#include <rfl/Literal.hpp>
+#include <rfl/internal/StringLiteral.hpp>
+#include <rfl/type_name_t.hpp>
+#include <string>
+#include <string_view>
 #include <type_traits>
+
+#include "../internal/remove_namespaces.hpp"
 
 namespace sqlgen::transpilation {
 
-namespace internal {
-
-inline std::string remove_namespaces(const std::string& _str) {
-  const auto pos = _str.find_last_of(':');
-  if (pos == std::string::npos) {
-    return _str;
-  }
-  return _str.substr(pos + 1);
-}
-
-}  // namespace internal
-
 template <class T>
-std::string get_tablename() noexcept {
+consteval std::string_view get_tablename_str_view() noexcept {
   using Type = std::remove_cvref_t<T>;
 
   constexpr bool has_tablename = requires {
@@ -34,14 +28,19 @@ std::string get_tablename() noexcept {
     static_assert(
         !has_viewname,
         "A struct can either have a tablename or a viewname, but not both.");
-    return std::string(Type::tablename);
+    return Type::tablename;
 
   } else if constexpr (has_viewname) {
-    return std::string(Type::viewname);
+    return Type::viewname;
 
   } else {
-    return internal::remove_namespaces(rfl::type_name_t<Type>().str());
+    return internal::remove_namespaces<rfl::type_name_t<Type>>();
   }
+}
+
+template <class T>
+std::string get_tablename() noexcept {
+  return std::string(get_tablename_str_view<T>());
 }
 
 }  // namespace sqlgen::transpilation
