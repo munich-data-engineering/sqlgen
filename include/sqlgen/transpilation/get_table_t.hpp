@@ -9,7 +9,9 @@
 #include "../Literal.hpp"
 #include "../Result.hpp"
 #include "../dynamic/JoinType.hpp"
+#include "../internal/get_name_from_literal.hpp"
 #include "TableWrapper.hpp"
+#include "get_tablename.hpp"
 
 namespace sqlgen::transpilation {
 
@@ -22,7 +24,9 @@ struct PairWrapper {
   friend consteval auto operator||(
       const PairWrapper&,
       const PairWrapper<Alias, OtherTableType, OtherAliasType>&) noexcept {
-    if constexpr (std::is_same_v<Alias, std::remove_cvref_t<OtherAliasType>>) {
+    if constexpr (std::is_same_v<Alias, std::remove_cvref_t<OtherAliasType>> ||
+                  internal::get_name_from_literal<Alias>() ==
+                      get_tablename_str_view<OtherTableType>()) {
       return PairWrapper<Alias, OtherTableType, OtherAliasType>{};
     } else {
       return PairWrapper{};
