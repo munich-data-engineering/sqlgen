@@ -45,11 +45,11 @@ TEST(sqlite, test_left_join_with_table_name) {
   };
 
   const auto get_people_with_pets =
-      select_from<Person>(col<"first_name", "Person"> | as<"first_name">,
-                          col<"last_name", "Person"> | as<"last_name">,
-                          col<"name", "Pet"> | as<"pet_name">) |
-      left_join<Pet, "">(col2<&Person::id> == col<"owner_id", "Pet">) |
-      order_by(col<"id", "Person">) | to<std::vector<PersonWithPet>>;
+      select_from<Person>(col<&Person::first_name> | as<"first_name">,
+                          col<&Person::last_name> | as<"last_name">,
+                          col<&Pet::name> | as<"pet_name">) |
+      left_join<Pet>(col<&Person::id> == col<&Pet::owner_id>) |
+      order_by(col<&Person::id>) | to<std::vector<PersonWithPet>>;
 
   const auto result = sqlite::connect()
                           .and_then(write(std::ref(people)))

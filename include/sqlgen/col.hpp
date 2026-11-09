@@ -224,15 +224,6 @@ struct Col {
   }
 };
 
-template <auto ptr>
-const auto col2 = Col<internal::get_member_ptr_name<ptr>(),
-                      transpilation::get_tablename_str_lit<
-                          internal::struct_type_t<decltype(ptr)>>()>{};
-
-template <rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias = "">
-const auto col = Col<_name, _alias>{};
-
 namespace transpilation {
 
 template <rfl::internal::StringLiteral _name,
@@ -245,6 +236,32 @@ struct ToTranspilationType<sqlgen::Col<_name, _alias>> {
   }
 };
 }  // namespace transpilation
+
+namespace internal {
+
+template <auto _name, rfl::internal::StringLiteral _alias>
+struct ColHelper;
+
+template <auto _name, rfl::internal::StringLiteral _alias>
+struct ColHelper {
+  using Type = sqlgen::Col<_name, _alias>;
+};
+
+template <class StructType, class PtrType, PtrType StructType::*_ptr,
+          rfl::internal::StringLiteral _alias>
+struct ColHelper<_ptr, _alias> {
+  using Type = sqlgen::Col<internal::get_member_ptr_name<_ptr>(),
+                           transpilation::get_tablename_str_lit<
+                               internal::struct_type_t<decltype(_ptr)>>()>;
+};
+
+template <auto _name, rfl::internal::StringLiteral _alias>
+using col_t = typename ColHelper<_name, _alias>::Type;
+
+}  // namespace internal
+
+template <auto _name, rfl::internal::StringLiteral _alias = "">
+const auto col = internal::col_t<_name, _alias>{};
 
 }  // namespace sqlgen
 
