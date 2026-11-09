@@ -151,11 +151,18 @@ std::string column_or_value_to_sql(
   return _col.visit([&](const auto& _c) -> std::string {
     using Type = std::remove_cvref_t<decltype(_c)>;
     if constexpr (std::is_same_v<Type, dynamic::Column>) {
-      if (_c.alias) {
-        return *_c.alias + "." + wrap_in_quotes(_c.name);
-      } else {
-        return wrap_in_quotes(_c.name);
-      }
+      return _c.alias_or_table.visit([&](const auto& _a) {
+        using AliasType = std::remove_cvref_t<decltype(_a)>;
+        if constexpr (std::is_same_v<AliasType,
+                                     dynamic::alias_or_table::Alias>) {
+          return _a.name + "." + wrap_in_quotes(_c.name);
+        } else if constexpr (std::is_same_v<AliasType,
+                                            dynamic::alias_or_table::Table>) {
+          return wrap_in_quotes(_a.name) + "." + wrap_in_quotes(_c.name);
+        } else {
+          return wrap_in_quotes(_c.name);
+        }
+      });
     } else {
       return _c.val.visit(handle_value);
     }

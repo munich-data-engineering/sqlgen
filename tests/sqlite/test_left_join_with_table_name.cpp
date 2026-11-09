@@ -58,7 +58,7 @@ TEST(sqlite, test_left_join_with_table_name) {
                           .value();
 
   const std::string expected_query =
-      R"(SELECT Person."first_name" AS "first_name", Person."last_name" AS "last_name", Pet."name" AS "pet_name" FROM "Person" LEFT JOIN "Pet"  ON Person."id" = Pet."owner_id" ORDER BY Person."id")";
+      R"(SELECT "Person"."first_name" AS "first_name", "Person"."last_name" AS "last_name", "Pet"."name" AS "pet_name" FROM "Person" LEFT JOIN "Pet"  ON "Person"."id" = "Pet"."owner_id" ORDER BY "Person"."id")";
   const std::string expected_json =
       R"([{"first_name":"Homer","last_name":"Simpson","pet_name":"Santa's Little Helper"},{"first_name":"Marge","last_name":"Simpson"},{"first_name":"Bart","last_name":"Simpson"},{"first_name":"Lisa","last_name":"Simpson","pet_name":"Snowball"}])";
 

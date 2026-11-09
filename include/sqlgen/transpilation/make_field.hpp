@@ -24,7 +24,7 @@
 #include "is_timestamp.hpp"
 #include "remove_as_t.hpp"
 #include "remove_nullable_t.hpp"
-#include "to_alias.hpp"
+#include "to_alias_or_table.hpp"
 #include "to_duration.hpp"
 #include "to_value.hpp"
 #include "underlying_t.hpp"
@@ -69,8 +69,9 @@ struct MakeField<TableTupleType, Col<_name, _alias, _is_table>> {
 
   dynamic::SelectFrom::Field operator()(const auto&) const {
     return dynamic::SelectFrom::Field{dynamic::Operation{
-        .val = dynamic::Column{.alias = to_alias<Literal<_alias>>(),
-                               .name = _name.str()}}};
+        .val = dynamic::Column{
+            .alias_or_table = to_alias_or_table<Literal<_alias>, _is_table>(),
+            .name = _name.str()}}};
   }
 };
 
@@ -193,8 +194,11 @@ struct MakeField<TableTupleType, Aggregation<AggregationOp::count,
   dynamic::SelectFrom::Field operator()(const auto& _agg) const {
     return dynamic::SelectFrom::Field{dynamic::Operation{
         .val = dynamic::Aggregation{dynamic::Aggregation::Count{
-            .val = dynamic::Column{.alias = to_alias<Literal<_alias>>(),
-                                   .name = _name.str()},
+            .val =
+                dynamic::Column{
+                    .alias_or_table =
+                        to_alias_or_table<Literal<_alias>, _is_table>(),
+                    .name = _name.str()},
             .distinct = _agg.distinct}}}};
   }
 };

@@ -4,13 +4,14 @@
 #include <optional>
 #include <string>
 
+#include "AliasOrTable.hpp"
 #include "Type.hpp"
 #include "types.hpp"
 
 namespace sqlgen::dynamic {
 
 struct Column {
-  std::optional<std::string> alias;
+  AliasOrTable alias_or_table;
   std::string name;
   Type type = types::Unknown{};
 };

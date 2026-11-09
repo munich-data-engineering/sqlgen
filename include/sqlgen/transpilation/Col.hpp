@@ -19,8 +19,8 @@ struct Col {
   /// Returns the column name.
   std::string name() const noexcept { return Name().str(); }
 
-  /// Returns whether the column is a table.
-  constexpr bool is_table() const noexcept { return _is_table; }
+  /// Returns whether alias_or_table is a table name.
+  static constexpr bool is_table() noexcept { return _is_table; }
 
   /// Returns the table alias.
 };

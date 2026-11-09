@@ -6,7 +6,7 @@
 #include "../Result.hpp"
 #include "../dynamic/OrderBy.hpp"
 #include "order_by_t.hpp"
-#include "to_alias.hpp"
+#include "to_alias_or_table.hpp"
 
 namespace sqlgen::transpilation {
 
@@ -24,9 +24,11 @@ struct ToOrderBy<OrderBy<Wrappers...>> {
   dynamic::Wrapper to_wrapper() const {
     using AliasOrTable = typename W::ColType::AliasOrTable;
     using Name = typename W::ColType::Name;
-    const auto column = dynamic::Column{.alias = to_alias<AliasOrTable>(),
-                                        .name = Name().str(),
-                                        .type = dynamic::types::Unknown{}};
+    static constexpr bool is_table = W::ColType::is_table();
+    const auto column = dynamic::Column{
+        .alias_or_table = to_alias_or_table<AliasOrTable, is_table>(),
+        .name = Name().str(),
+        .type = dynamic::types::Unknown{}};
     return dynamic::Wrapper{.column = column, .desc = W::desc};
   }
 

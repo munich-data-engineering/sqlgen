@@ -21,7 +21,7 @@
 #include "get_table_t.hpp"
 #include "make_fields.hpp"
 #include "table_tuple_t.hpp"
-#include "to_alias.hpp"
+#include "to_alias_or_table.hpp"
 #include "to_condition.hpp"
 #include "to_group_by.hpp"
 #include "to_joins.hpp"
@@ -33,7 +33,8 @@
 namespace sqlgen::transpilation {
 
 template <class AliasT, class FieldsT, class TableOrQueryT, class JoinsT,
-          class WhereT, class GroupByT, class OrderByT, class LimitT, class OffsetT>
+          class WhereT, class GroupByT, class OrderByT, class LimitT,
+          class OffsetT>
 struct SelectFromTypes {
   using AliasType = AliasT;
   using FieldsType = FieldsT;
@@ -72,7 +73,8 @@ dynamic::SelectFrom to_select_from(const auto& _fields,
   return dynamic::SelectFrom{
       .table_or_query = to_table_or_query(_table_or_query),
       .fields = fields,
-      .alias = to_alias<AliasType>(),
+      .alias = to_alias_or_table<AliasType, false>().visit(
+          [](auto&& _a) -> std::optional<std::string> { return _a.name; }),
       .joins = to_joins<TableTupleType>(_joins),
       .where = to_condition<std::remove_cvref_t<TableTupleType>>(_where),
       .group_by = to_group_by<GroupByType>(),

@@ -8,7 +8,7 @@
 #include "../dynamic/Column.hpp"
 #include "../dynamic/GroupBy.hpp"
 #include "group_by_t.hpp"
-#include "to_alias.hpp"
+#include "to_alias_or_table.hpp"
 
 namespace sqlgen::transpilation {
 
@@ -23,9 +23,10 @@ struct ToGroupBy<Nothing> {
 template <class... ColTypes>
 struct ToGroupBy<GroupBy<ColTypes...>> {
   std::optional<dynamic::GroupBy> operator()() const {
-    const auto columns = std::vector<dynamic::Column>(
-        {dynamic::Column{.alias = to_alias<typename ColTypes::AliasOrTable>(),
-                         .name = ColTypes().name()}...});
+    const auto columns = std::vector<dynamic::Column>({dynamic::Column{
+        .alias_or_table = to_alias_or_table<typename ColTypes::AliasOrTable,
+                                            ColTypes::is_table()>(),
+        .name = ColTypes().name()}...});
     return dynamic::GroupBy{.columns = columns};
   }
 };
