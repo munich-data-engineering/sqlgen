@@ -16,16 +16,16 @@ template <class _ColType>
 struct OrderByWrapper;
 
 template <rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias>
-struct OrderByWrapper<transpilation::Col<_name, _alias>> {
-  using ColType = transpilation::Col<_name, _alias>;
+          rfl::internal::StringLiteral _alias, bool _is_table>
+struct OrderByWrapper<transpilation::Col<_name, _alias, _is_table>> {
+  using ColType = transpilation::Col<_name, _alias, _is_table>;
   constexpr static bool desc = false;
 };
 
 template <rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias>
-struct OrderByWrapper<Desc<transpilation::Col<_name, _alias>>> {
-  using ColType = transpilation::Col<_name, _alias>;
+          rfl::internal::StringLiteral _alias, bool _is_table>
+struct OrderByWrapper<Desc<transpilation::Col<_name, _alias, _is_table>>> {
+  using ColType = transpilation::Col<_name, _alias, _is_table>;
   constexpr static bool desc = true;
 };
 

@@ -14,10 +14,10 @@ template <class TableType, class Names, class ColType>
 struct ColumnExists;
 
 template <class TableType, rfl::internal::StringLiteral _col_name,
-          rfl::internal::StringLiteral _alias,
+          rfl::internal::StringLiteral _alias, bool _is_table,
           rfl::internal::StringLiteral... _field_names>
 struct ColumnExists<TableType, Literal<_field_names...>,
-                    transpilation::Col<_col_name, _alias>> {
+                    transpilation::Col<_col_name, _alias, _is_table>> {
   static constexpr bool value = (false || ... || (_col_name == _field_names));
   static_assert(value, "Column does not exist.");
 };
@@ -28,10 +28,11 @@ constexpr bool column_exists_v = ColumnExists<TableType, Names, ColType>::value;
 template <class TableTupleType, class... ColTypes>
 consteval bool all_columns_exist() {
   return (true && ... &&
-          column_exists_v<get_table_t<typename ColTypes::Alias, TableTupleType>,
-                          typename rfl::named_tuple_t<get_table_t<
-                              typename ColTypes::Alias, TableTupleType>>::Names,
-                          ColTypes>);
+          column_exists_v<
+              get_table_t<typename ColTypes::AliasOrTable, TableTupleType>,
+              typename rfl::named_tuple_t<get_table_t<
+                  typename ColTypes::AliasOrTable, TableTupleType>>::Names,
+              ColTypes>);
 }
 
 }  // namespace sqlgen::transpilation

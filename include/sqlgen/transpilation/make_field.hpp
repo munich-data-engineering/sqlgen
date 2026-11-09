@@ -50,17 +50,19 @@ struct MakeField {
 };
 
 template <class TableTupleType, rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias>
-struct MakeField<TableTupleType, Col<_name, _alias>> {
-  static_assert(all_columns_exist<TableTupleType, Col<_name, _alias>>(),
-                "A required column does not exist.");
+          rfl::internal::StringLiteral _alias, bool _is_table>
+struct MakeField<TableTupleType, Col<_name, _alias, _is_table>> {
+  static_assert(
+      all_columns_exist<TableTupleType, Col<_name, _alias, _is_table>>(),
+      "A required column does not exist.");
 
   static constexpr bool is_aggregation = false;
   static constexpr bool is_column = true;
   static constexpr bool is_operation = false;
 
   using TableType =
-      get_table_t<typename Col<_name, _alias>::Alias, TableTupleType>;
+      get_table_t<typename Col<_name, _alias, _is_table>::AliasOrTable,
+                  TableTupleType>;
 
   using Name = Literal<_name>;
   using Type = rfl::field_type_t<_name, TableType>;
@@ -173,12 +175,13 @@ struct MakeField<TableTupleType, Aggregation<_agg, ValueType>> {
 };
 
 template <class TableTupleType, rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias>
-struct MakeField<TableTupleType,
-                 Aggregation<AggregationOp::count, Col<_name, _alias>>> {
-  static_assert(all_columns_exist<TableTupleType, Col<_name, _alias>>(),
-                "A column required in the COUNT or COUNT_DISTINCT aggregation "
-                "does not exist.");
+          rfl::internal::StringLiteral _alias, bool _is_table>
+struct MakeField<TableTupleType, Aggregation<AggregationOp::count,
+                                             Col<_name, _alias, _is_table>>> {
+  static_assert(
+      all_columns_exist<TableTupleType, Col<_name, _alias, _is_table>>(),
+      "A column required in the COUNT or COUNT_DISTINCT aggregation "
+      "does not exist.");
 
   static constexpr bool is_aggregation = true;
   static constexpr bool is_column = true;

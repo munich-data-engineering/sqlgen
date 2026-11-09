@@ -22,9 +22,9 @@ template <class... Wrappers>
 struct ToOrderBy<OrderBy<Wrappers...>> {
   template <class W>
   dynamic::Wrapper to_wrapper() const {
-    using Alias = typename W::ColType::Alias;
+    using AliasOrTable = typename W::ColType::AliasOrTable;
     using Name = typename W::ColType::Name;
-    const auto column = dynamic::Column{.alias = to_alias<Alias>(),
+    const auto column = dynamic::Column{.alias = to_alias<AliasOrTable>(),
                                         .name = Name().str(),
                                         .type = dynamic::types::Unknown{}};
     return dynamic::Wrapper{.column = column, .desc = W::desc};

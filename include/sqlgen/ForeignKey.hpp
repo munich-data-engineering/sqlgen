@@ -23,15 +23,15 @@ struct ForeignKey {
   static_assert(transpilation::column_exists_v<
                     _ForeignTableType,
                     typename rfl::named_tuple_t<_ForeignTableType>::Names,
-                    transpilation::Col<_col_name>>,
+                    transpilation::Col<_col_name, "", false>>,
                 "The column referenced to in ForeignKey<...> does not exist on "
                 "the referenced table.");
   static_assert(
-      std::is_same_v<
-          std::remove_cvref_t<transpilation::remove_reflection_t<T>>,
-          std::remove_cvref_t<
-              transpilation::remove_reflection_t<transpilation::underlying_t<
-                  ForeignTableType, transpilation::Col<_col_name>>>>>,
+      std::is_same_v<std::remove_cvref_t<transpilation::remove_reflection_t<T>>,
+                     std::remove_cvref_t<transpilation::remove_reflection_t<
+                         transpilation::underlying_t<
+                             ForeignTableType,
+                             transpilation::Col<_col_name, "", false>>>>>,
       "The type of the column and the type of the referenced column must be "
       "the same.");
   static_assert(

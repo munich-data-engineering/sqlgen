@@ -24,7 +24,7 @@ template <class... ColTypes>
 struct ToGroupBy<GroupBy<ColTypes...>> {
   std::optional<dynamic::GroupBy> operator()() const {
     const auto columns = std::vector<dynamic::Column>(
-        {dynamic::Column{.alias = to_alias<typename ColTypes::Alias>(),
+        {dynamic::Column{.alias = to_alias<typename ColTypes::AliasOrTable>(),
                          .name = ColTypes().name()}...});
     return dynamic::GroupBy{.columns = columns};
   }

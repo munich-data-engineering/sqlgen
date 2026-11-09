@@ -27,17 +27,20 @@ inline auto count() {
 template <rfl::internal::StringLiteral _name,
           rfl::internal::StringLiteral _alias_or_table, bool _is_table>
 auto count(const Col<_name, _alias_or_table, _is_table>&) {
-  return transpilation::Aggregation<transpilation::AggregationOp::count,
-                                    transpilation::Col<_name>>{
-      .val = transpilation::Col<_name>{}};
+  return transpilation::Aggregation<
+      transpilation::AggregationOp::count,
+      transpilation::Col<_name, _alias_or_table, _is_table>>{
+      .val = transpilation::Col<_name, _alias_or_table, _is_table>{}};
 }
 
 template <rfl::internal::StringLiteral _name,
           rfl::internal::StringLiteral _alias_or_table, bool _is_table>
 auto count_distinct(const Col<_name, _alias_or_table, _is_table>&) {
-  return transpilation::Aggregation<transpilation::AggregationOp::count,
-                                    transpilation::Col<_name>>{
-      .val = transpilation::Col<_name>{}, .distinct = true};
+  return transpilation::Aggregation<
+      transpilation::AggregationOp::count,
+      transpilation::Col<_name, _alias_or_table, _is_table>>{
+      .val = transpilation::Col<_name, _alias_or_table, _is_table>{},
+      .distinct = true};
 }
 
 template <class T>

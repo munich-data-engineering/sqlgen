@@ -7,17 +7,22 @@
 namespace sqlgen::transpilation {
 
 template <rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias = "">
+          rfl::internal::StringLiteral _alias_or_table, bool _is_table>
 struct Col {
-  using ColType = Col<_name, _alias>;
+  using ColType = Col<_name, _alias_or_table, _is_table>;
   using Name = rfl::Literal<_name>;
-  using Alias = rfl::Literal<_alias>;
+  using AliasOrTable = rfl::Literal<_alias_or_table>;
 
-  /// Returns the column alias.
-  std::string alias() const noexcept { return Alias().str(); }
+  /// Returns the column alias or table name.
+  std::string alias_or_table() const noexcept { return AliasOrTable().str(); }
 
   /// Returns the column name.
   std::string name() const noexcept { return Name().str(); }
+
+  /// Returns whether the column is a table.
+  constexpr bool is_table() const noexcept { return _is_table; }
+
+  /// Returns the table alias.
 };
 
 }  // namespace sqlgen::transpilation
