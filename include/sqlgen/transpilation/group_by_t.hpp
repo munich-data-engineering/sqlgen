@@ -3,9 +3,7 @@
 
 #include <rfl.hpp>
 #include <type_traits>
-#include <vector>
 
-#include "Col.hpp"
 #include "all_columns_exist.hpp"
 
 namespace sqlgen::transpilation {

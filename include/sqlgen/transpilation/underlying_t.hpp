@@ -31,12 +31,13 @@ struct Underlying<TableTupleType, Aggregation<_op, ValueType>> {
 };
 
 template <class TableTupleType, rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias>
-struct Underlying<TableTupleType, Col<_name, _alias>> {
-  static_assert(all_columns_exist<TableTupleType, Col<_name, _alias>>(),
-                "At least one column referenced in your query does not exist.");
-  using Type = remove_reflection_t<
-      rfl::field_type_t<_name, get_table_t<Literal<_alias>, TableTupleType>>>;
+          rfl::internal::StringLiteral _alias_or_table>
+struct Underlying<TableTupleType, Col<_name, _alias_or_table>> {
+  static_assert(
+      all_columns_exist<TableTupleType, Col<_name, _alias_or_table>>(),
+      "At least one column referenced in your query does not exist.");
+  using Type = remove_reflection_t<rfl::field_type_t<
+      _name, get_table_t<Literal<_alias_or_table>, TableTupleType>>>;
 };
 
 template <class TableTupleType, rfl::internal::StringLiteral _name,

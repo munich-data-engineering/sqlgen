@@ -9,13 +9,13 @@ namespace sqlgen::literals {
 
 template <rfl::internal::StringLiteral _name>
 auto operator"" _c() {
-  return Col<_name>{};
+  return Col<_name, "", false>{};
 }
 
 #define SQLGEN_TABLE_ALIAS_LITERAL(N)           \
   template <rfl::internal::StringLiteral _name> \
   auto operator""_t##N() {                      \
-    return Col<_name, "t" #N>{};                \
+    return Col<_name, "t" #N, false>{};         \
   }
 
 SQLGEN_TABLE_ALIAS_LITERAL(1)

@@ -18,11 +18,11 @@ struct GetColType {
 };
 
 template <rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias>
-struct GetColType<Col<_name, _alias>> {
-  using Type = transpilation::Col<_name, _alias>;
+          rfl::internal::StringLiteral _alias_or_table, bool _is_table>
+struct GetColType<Col<_name, _alias_or_table, _is_table>> {
+  using Type = transpilation::Col<_name, _alias_or_table>;
   static Type get_value(const auto&) {
-    return transpilation::Col<_name, _alias>{};
+    return transpilation::Col<_name, _alias_or_table>{};
   }
 };
 
