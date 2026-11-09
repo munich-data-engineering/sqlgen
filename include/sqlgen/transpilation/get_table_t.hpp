@@ -65,13 +65,13 @@ struct GetTableType<Literal<_alias>,
                 "Alias could not be identified.");
 };
 
-template <class T>
-struct GetTableType<Literal<"">, TableWrapper<T>> {
+template <rfl::internal::StringLiteral _alias, class T>
+struct GetTableType<Literal<_alias>, TableWrapper<T>> {
   using TableType = T;
 };
 
-template <class T>
-struct GetTableType<Literal<"">, T> {
+template <rfl::internal::StringLiteral _alias, class T>
+struct GetTableType<Literal<_alias>, T> {
   using TableType = T;
 };
 
