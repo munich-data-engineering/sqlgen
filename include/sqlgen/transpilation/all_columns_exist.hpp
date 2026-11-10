@@ -28,11 +28,12 @@ constexpr bool column_exists_v = ColumnExists<TableType, Names, ColType>::value;
 template <class TableTupleType, class... ColTypes>
 consteval bool all_columns_exist() {
   return (true && ... &&
-          column_exists_v<
-              get_table_t<typename ColTypes::AliasOrTable, TableTupleType>,
-              typename rfl::named_tuple_t<get_table_t<
-                  typename ColTypes::AliasOrTable, TableTupleType>>::Names,
-              ColTypes>);
+          column_exists_v<get_table_t<typename ColTypes::AliasOrTable,
+                                      TableTupleType, ColTypes::is_table()>,
+                          typename rfl::named_tuple_t<get_table_t<
+                              typename ColTypes::AliasOrTable, TableTupleType,
+                              ColTypes::is_table()>>::Names,
+                          ColTypes>);
 }
 
 }  // namespace sqlgen::transpilation

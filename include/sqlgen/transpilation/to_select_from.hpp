@@ -18,7 +18,6 @@
 #include "TableWrapper.hpp"
 #include "check_aggregations.hpp"
 #include "flatten_fields_t.hpp"
-#include "get_table_t.hpp"
 #include "make_fields.hpp"
 #include "table_tuple_t.hpp"
 #include "to_alias_or_table.hpp"

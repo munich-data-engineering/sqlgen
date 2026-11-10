@@ -117,28 +117,30 @@ struct FieldsToNamedTupleType<sqlgen::Union<ContainerType, SelectTs...>,
 
 template <rfl::internal::StringLiteral _alias, class ContainerType,
           class... SelectTs>
-struct GetTableType<Literal<_alias>,
-                    sqlgen::Union<ContainerType, SelectTs...>> {
+struct GetTableType<Literal<_alias>, sqlgen::Union<ContainerType, SelectTs...>,
+                    false> {
   using TableType = get_table_t<
       Literal<_alias>,
       rfl::Tuple<std::pair<
           extract_table_t<sqlgen::Union<ContainerType, SelectTs...>, false>,
-          Literal<_alias>>>>;
+          Literal<_alias>>>,
+      false>;
 };
 
 template <class ContainerType, class... SelectTs>
-struct GetTableType<Literal<"">, sqlgen::Union<ContainerType, SelectTs...>> {
+struct GetTableType<Literal<"">, sqlgen::Union<ContainerType, SelectTs...>,
+                    false> {
   using TableType = get_table_t<
       Literal<"">,
-      extract_table_t<sqlgen::Union<ContainerType, SelectTs...>, false>>;
+      extract_table_t<sqlgen::Union<ContainerType, SelectTs...>, false>, false>;
 };
 
 template <size_t _i, class ContainerType, class... SelectTs>
 struct GetTableType<std::integral_constant<size_t, _i>,
-                    sqlgen::Union<ContainerType, SelectTs...>> {
+                    sqlgen::Union<ContainerType, SelectTs...>, false> {
   using TableType = get_table_t<
       std::integral_constant<size_t, _i>,
-      extract_table_t<sqlgen::Union<ContainerType, SelectTs...>, false>>;
+      extract_table_t<sqlgen::Union<ContainerType, SelectTs...>, false>, false>;
 };
 
 template <class ContainerType, class... SelectTs, class AliasType>

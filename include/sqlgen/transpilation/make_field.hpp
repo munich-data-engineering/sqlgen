@@ -62,7 +62,7 @@ struct MakeField<TableTupleType, Col<_name, _alias, _is_table>> {
 
   using TableType =
       get_table_t<typename Col<_name, _alias, _is_table>::AliasOrTable,
-                  TableTupleType>;
+                  TableTupleType, _is_table>;
 
   using Name = Literal<_name>;
   using Type = rfl::field_type_t<_name, TableType>;
