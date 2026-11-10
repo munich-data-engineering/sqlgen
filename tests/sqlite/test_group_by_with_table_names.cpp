@@ -41,7 +41,7 @@ TEST(sqlite, test_group_by_with_table_names) {
 
   const auto get_children =
       select_from<Person>(
-          "last_name"_c, avg(col<&Person::age>).as<"avg_age">(),
+          col<&Person::last_name>, avg(col<&Person::age>).as<"avg_age">(),
           count().as<"num_children">(), max(col<&Person::age>).as<"max_age">(),
           min(col<&Person::age>).as<"min_age">(),
           sum(col<&Person::age>).as<"sum_age">(),
