@@ -257,12 +257,16 @@ struct ColHelper {
 };
 
 template <class StructType, class PtrType, PtrType StructType::*_ptr,
-          rfl::internal::StringLiteral _table>
-struct ColHelper<_ptr, _table> {
-  using Type = sqlgen::Col<internal::get_member_ptr_name<_ptr>(),
-                           transpilation::get_tablename_str_lit<
-                               internal::struct_type_t<decltype(_ptr)>>(),
-                           true>;
+          rfl::internal::StringLiteral _alias_or_table>
+struct ColHelper<_ptr, _alias_or_table> {
+  using Type = std::conditional_t<
+      _alias_or_table.string_view() == "",
+      sqlgen::Col<internal::get_member_ptr_name<_ptr>(),
+                  transpilation::get_tablename_str_lit<
+                      internal::struct_type_t<decltype(_ptr)>>(),
+                  true>,
+      sqlgen::Col<internal::get_member_ptr_name<_ptr>(), _alias_or_table,
+                  false>>;
 };
 
 template <auto _name, rfl::internal::StringLiteral _alias_or_table>
