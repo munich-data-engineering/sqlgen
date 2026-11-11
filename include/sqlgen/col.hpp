@@ -88,7 +88,7 @@ struct Col {
   /// Returns a SET clause in an UPDATE statement.
   template <rfl::internal::StringLiteral _other_name,
             rfl::internal::StringLiteral _other_alias>
-  auto set(const Col<_other_name, _other_alias>& _to) const noexcept {
+  auto set(const Col<_other_name, _other_alias>&) const noexcept {
     return transpilation::Set<transpilation::Col<_name, _alias>,
                               transpilation::Col<_other_name, _other_alias>>{
         .to = transpilation::Col<_other_name, _other_alias>{}};

@@ -38,9 +38,6 @@ class SQLGEN_API Iterator {
   /// Whether the end is reached.
   bool end_;
 
-  /// The current rownumber.
-  size_t rownum_;
-
   /// The number of columns.
   int num_cols_;
 

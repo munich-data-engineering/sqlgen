@@ -29,14 +29,14 @@ struct SelectFrom {
 
   struct Field {
     Operation val;
-    std::optional<std::string> as;
+    std::optional<std::string> as = std::nullopt;
   };
 
   struct Join {
     JoinType how;
     TableOrQueryType table_or_query;
     std::string alias;
-    std::optional<Condition> on;
+    std::optional<Condition> on = std::nullopt;
   };
 
   TableOrQueryType table_or_query;

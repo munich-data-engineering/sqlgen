@@ -12,7 +12,6 @@ namespace sqlgen::sqlite {
 
 Iterator::Iterator(const StmtPtr& _stmt, const ConnPtr& _conn)
     : end_(false),
-      rownum_(0),
       num_cols_(sqlite3_column_count(_stmt.get())),
       stmt_(_stmt),
       conn_(_conn) {

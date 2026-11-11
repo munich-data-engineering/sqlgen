@@ -15,7 +15,8 @@ class Range;
 /// to pass Range<T> to read without having to worry about connector-specific
 /// iterators.
 template <class T>
-struct Range {
+class Range {
+public:
   using value_type = Result<T>;
 };
 
