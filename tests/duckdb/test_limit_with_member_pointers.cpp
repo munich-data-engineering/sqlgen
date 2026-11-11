@@ -1,0 +1,49 @@
+#include <gtest/gtest.h>
+
+#include <rfl.hpp>
+#include <rfl/json.hpp>
+#include <sqlgen.hpp>
+#include <sqlgen/duckdb.hpp>
+#include <vector>
+
+namespace test_limit_with_member_pointers {
+
+struct Person {
+  sqlgen::PrimaryKey<uint32_t> id;
+  std::string first_name;
+  std::string last_name;
+  int age;
+};
+
+TEST(duckdb, test_limit_with_member_pointers) {
+  using namespace sqlgen;
+  using namespace sqlgen::literals;
+  const auto people1 = std::vector<Person>(
+      {Person{
+           .id = 0, .first_name = "Homer", .last_name = "Simpson", .age = 45},
+       Person{.id = 1, .first_name = "Bart", .last_name = "Simpson", .age = 10},
+       Person{.id = 2, .first_name = "Lisa", .last_name = "Simpson", .age = 8},
+       Person{
+           .id = 3, .first_name = "Maggie", .last_name = "Simpson", .age = 0},
+       Person{
+           .id = 4, .first_name = "Hugo", .last_name = "Simpson", .age = 10}});
+
+  const auto conn = duckdb::connect();
+
+  sqlgen::write(conn, people1);
+
+  const auto query =
+      sqlgen::read<std::vector<Person>> |
+      order_by(col<&Person::age>) | limit(2) | offset(1);
+
+  const auto people2 = query(conn).value();
+
+  const std::string expected_query =
+      R"(SELECT "id", "first_name", "last_name", "age" FROM "Person" ORDER BY "Person"."age" LIMIT 2 OFFSET 1)";
+
+  EXPECT_EQ(duckdb::to_sql(query), expected_query);
+  EXPECT_EQ(rfl::json::write(people2),
+            R"([{"id":2,"first_name":"Lisa","last_name":"Simpson","age":8},{"id":1,"first_name":"Bart","last_name":"Simpson","age":10}])");
+}
+
+}  // namespace test_limit_with_member_pointers

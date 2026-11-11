@@ -134,7 +134,7 @@ class SQLGEN_API Connection {
     const auto fields = internal::collect::vector(
         _columns | transform([](const auto &_name) {
           return dynamic::SelectFrom::Field{
-              .val = dynamic::Operation{dynamic::Column{.alias = std::nullopt,
+              .val = dynamic::Operation{dynamic::Column{.alias_or_table = dynamic::alias_or_table::Neither{},
                                                         .name = _name}},
               .as = std::nullopt};
         }));

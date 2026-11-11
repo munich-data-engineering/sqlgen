@@ -62,7 +62,6 @@ using ptr_type_t = member_type_helper<T>::ptr_type;
 
 template <auto ptr>
 consteval auto get_member_ptr_name() {
-  using Type = ptr_type_t<decltype(ptr)>;
   using StructType = struct_type_t<decltype(ptr)>;
   constexpr auto name = get_member_ptr_name_str_view<StructType, ptr>();
   return [&]<auto... Ns>(std::index_sequence<Ns...>) {
