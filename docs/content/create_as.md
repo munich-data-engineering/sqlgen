@@ -130,6 +130,28 @@ const auto get_names = create_or_replace_view_as<Name>(names_query);
 get_names(conn).value();
 ```
 
+## Using member pointers
+
+The `select_from` queries passed to `create_as` can reference columns with a
+member pointer to a struct field through the `col` template instead of the
+`"..."_c` column literals. For example:
+
+```cpp
+const auto names_query = select_from<Person>(
+    col<&Person::first_name>,
+    col<&Person::last_name>);
+const auto get_names = create_as<Name>(names_query);
+```
+
+This generates the following SQL:
+
+```sql
+CREATE TABLE "Name" AS SELECT "Person"."first_name", "Person"."last_name" FROM "Person";
+```
+
+The `if_not_exists`, view creation, and monadic error handling examples all work
+with member pointers in the same way.
+
 ## Database-Specific Behavior
 
 ### MySQL

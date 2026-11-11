@@ -227,6 +227,85 @@ using namespace sqlgen::literals;
 col<"column_name", "t1">
 ```
 
+## Referencing columns with member pointers
+
+As an alternative to the column literals above, every example can use a member
+pointer to a struct field through the `col` template, e.g. `col<&Person::age>`.
+This derives the column name from the struct instead of a string literal, so the
+code compiles only if the field exists:
+
+```cpp
+using namespace sqlgen;
+using namespace sqlgen::literals;
+
+// Select specific columns via member pointers
+const auto query = select_from<Person>(
+    col<&Person::first_name>,
+    col<&Person::last_name>,
+    col<&Person::age>);
+```
+
+This generates (note that sqlgen qualifies the columns with the table name):
+
+```sql
+SELECT "Person"."first_name", "Person"."last_name", "Person"."age" FROM "Person"
+```
+
+The same applies to aliases and aliased tables:
+
+```cpp
+struct Result {
+    std::string name;
+    int person_age;
+};
+
+const auto query = select_from<Person>(
+    col<&Person::first_name> | as<"name">,
+    col<&Person::age> | as<"person_age">
+) | to<std::vector<Result>>;
+
+const auto people = sqlite::connect()
+    .and_then(query)
+    .value();
+```
+
+This generates:
+
+```sql
+SELECT "Person"."first_name" AS "name", "Person"."age" AS "person_age" FROM "Person"
+```
+
+For aliased tables, pass the alias as the second template argument:
+
+```cpp
+const auto query = select_from<Person, "t1">(
+    col<&Person::first_name, "t1">,
+    col<&Person::last_name, "t1">,
+    col<&Person::age, "t1">
+) | where(col<&Person::age, "t1"> > 18);
+```
+
+This generates:
+
+```sql
+SELECT t1."first_name", t1."last_name", t1."age" FROM "Person" t1 WHERE t1."age" > 18
+```
+
+And query composition works the same way:
+
+```cpp
+const auto query = select_from<Person>(
+    col<&Person::first_name>,
+    col<&Person::last_name>,
+    col<&Person::age>
+)
+| where(col<&Person::age> >= 18)              // Filter results
+| order_by(col<&Person::last_name>, col<&Person::first_name>)  // Order results
+| limit(10)                                  // Limit number of results
+| offset(5)                                  // Offset the result set
+| to<std::vector<Person>>;                   // Convert to container
+```
+
 ## Advanced Examples
 
 ### Complex Nested Query

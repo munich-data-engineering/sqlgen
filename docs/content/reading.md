@@ -190,6 +190,40 @@ const auto query = sqlgen::read<std::vector<Person>> |
 const auto adults = query(conn).value();
 ```
 
+## Using member pointers
+
+The `where`, `order_by`, and `limit` examples above can all reference columns
+with a member pointer to a struct field through the `col` template, e.g.
+`col<&Person::age>`. This derives the column name from the struct rather than a
+string literal, so the code compiles only if the field exists. The full query
+composition example rewritten with member pointers:
+
+```cpp
+using namespace sqlgen;
+using namespace sqlgen::literals;
+
+const auto query = sqlgen::read<std::vector<Person>> |
+                   where(col<&Person::age> >= 18) |
+                   order_by(col<&Person::last_name>, col<&Person::first_name>.desc()) |
+                   limit(10);
+
+const auto adults = query(conn).value();
+```
+
+This generates the following SQL (note that sqlgen qualifies the columns with the
+table name because the referenced type is known at compile time):
+
+```sql
+SELECT "id", "first_name", "last_name", "age"
+FROM "Person"
+WHERE 
+    ("Person"."age" >= 18)
+ORDER BY
+    "Person"."last_name",
+    "Person"."first_name" DESC
+LIMIT 10;
+```
+
 ## Notes
 
 - All query clauses (`where`, `order_by`, `limit`) are optional.

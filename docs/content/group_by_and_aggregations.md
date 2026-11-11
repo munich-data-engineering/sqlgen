@@ -214,6 +214,31 @@ const auto query = select_from<TestTable>(
 
 In this example, each field in the `Result` struct must have a name that matches one of the aliases used in the query. The order of the fields in the struct doesn't matter, but the names must match exactly.
 
+## Using member pointers
+
+The aggregation and grouping examples above can also reference columns with a
+member pointer to the struct field through the `col` template. The generated SQL
+is the same; only the C++ reference to the column changes:
+
+```cpp
+using namespace sqlgen;
+using namespace sqlgen::literals;
+
+const auto get_children = select_from<Person>(
+    avg(col<&Person::age>).as<"avg_age">(),
+    count().as<"num_children">(),
+    max(col<&Person::age>).as<"max_age">(),
+    min(col<&Person::age>).as<"min_age">(),
+    sum(col<&Person::age>).as<"sum_age">(),
+    count_distinct(col<&Person::last_name>).as<"num_last_names">()
+) | where(col<&Person::age> < 18) | group_by(col<&Person::last_name>) | to<std::vector<Children>>;
+```
+
+The generated SQL is identical to the examples above, except that the referenced
+columns are qualified with the table name (e.g. `AVG("Person"."age")`,
+`GROUP BY "Person"."last_name"`), because sqlgen knows the referenced type at
+compile time.
+
 ## Notes
 
 - The `group_by` clause must be used before `order_by` or `limit` and `offset` clauses

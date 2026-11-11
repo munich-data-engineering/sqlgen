@@ -48,6 +48,24 @@ const auto s2 = sqlgen::select_from<User2>("name"_c, "age"_c);
 const auto united = sqlgen::unite_all<std::vector<User1>>(s1, s2);
 ```
 
+## Using member pointers
+
+The `select_from` columns in the examples above can instead reference the struct
+fields with member pointers through the `col` template. For `unite`:
+
+```cpp
+const auto s1 = sqlgen::select_from<User1>(col<&User1::name>, col<&User1::age>);
+const auto s2 = sqlgen::select_from<User2>(col<&User2::name>, col<&User2::age>);
+```
+
+And for the join nesting example, pass the alias as the second template argument:
+
+```cpp
+const auto sel = select_from<Login, "t1">(col<&Login::id, "t1">, col<&Login::username, "t1">) |
+                 inner_join<"t2">(united, col<&Login::username, "t1"> == col<&User1::name, "t2">) |
+                 where(col<&Login::id, "t1"> == 1) | to<std::vector<Login>>;
+```
+
 ## Nesting in `SELECT` statements
 
 You can use the result of a `unite` or `unite_all` operation as a subquery in a `SELECT` statement.

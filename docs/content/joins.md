@@ -145,6 +145,31 @@ If you want to use your own alias, you can use this syntax instead:
 col<"id", "your_alias">, col<"first_name", "your_alias">, col<"age", "your_alias">
 ```
 
+### Column Member Pointers
+
+As an alternative to the `_tN` suffixes or the `col<"col", "alias">` syntax, the
+columns in a join can be referenced with a member pointer to a struct field,
+passing the alias as the second template argument. This is especially handy for
+self-joins, where the same table appears more than once:
+
+```cpp
+const auto get_people =
+    select_from<Person, "t1">(
+        col<&Person::last_name, "t1"> | as<"last_name">,
+        col<&Person::first_name, "t3"> | as<"first_name_child">,
+        avg(col<&Person::age, "t1"> - col<&Person::age, "t3">) | as<"avg_parent_age_at_birth">
+    ) |
+    inner_join<Relationship, "t2">(col<&Person::id, "t1"> == col<&Relationship::parent_id, "t2">) |
+    left_join<Person, "t3">(col<&Person::id, "t3"> == col<&Relationship::child_id, "t2">) |
+    group_by(col<&Person::last_name, "t1">, col<&Person::first_name, "t3">) |
+    order_by(col<&Person::last_name, "t1">, col<&Person::first_name, "t3">) |
+    to<std::vector<ParentAndChild>>;
+```
+
+This produces a query with both an inner and a left join, grouping and ordering
+the results. The join conditions, `group_by`, and `order_by` all reference their
+columns the same way.
+
 ## Advanced: Nested and Grouped Joins
 
 You can nest joins and combine them with grouping and aggregation:
