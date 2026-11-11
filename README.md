@@ -259,6 +259,26 @@ WHERE "age" >= 18
 ORDER BY "age" DESC, "last_name"
 LIMIT 10;
 ```
+#### Using column member pointers
+
+The same query can reference `Person`'s fields with member pointers:
+
+```cpp
+const auto query = read<std::vector<Person>> |
+                   where(col<&Person::age> >= 18) |
+                   order_by(col<&Person::age>.desc(), col<&Person::last_name>) |
+                   limit(10);
+```
+
+This generates SQL like:
+
+```sql
+SELECT "first_name", "last_name", "age", "email"
+FROM "Person"
+WHERE "Person"."age" >= 18
+ORDER BY "Person"."age" DESC, "Person"."last_name"
+LIMIT 10;
+```
 
 ### Grouping and Aggregating Data
 
@@ -298,6 +318,32 @@ WHERE "age" < 18
 GROUP BY "last_name";
 ```
 
+#### Using column member pointers
+
+```cpp
+const auto get_children = select_from<Person>(
+    col<&Person::last_name>,
+    count().as<"num_children">(),
+    max(col<&Person::age>).as<"max_age">(),
+    min(col<&Person::age>).as<"min_age">(),
+    sum(col<&Person::age>).as<"sum_age">(),
+) | where(col<&Person::age> < 18) | group_by(col<&Person::last_name>) | to<std::vector<Children>>;
+```
+
+This generates SQL like:
+
+```sql
+SELECT
+    "Person"."last_name",
+    COUNT(*) as "num_children",
+    MAX("Person"."age") as "max_age",
+    MIN("Person"."age") as "min_age",
+    SUM("Person"."age") as "sum_age"
+FROM "Person"
+WHERE "Person"."age" < 18
+GROUP BY "Person"."last_name";
+```
+
 ### Joining data
 
 ```cpp
@@ -328,6 +374,38 @@ SELECT t1."last_name" AS "last_name",
        t1."first_name" AS "first_name_parent",
        t3."first_name" AS "first_name_child",
        t1."age" - t3."age" AS "parent_age_at_birth"
+FROM "Person" t1
+INNER JOIN "Relationship" t2
+ON t1."id" = t2."parent_id"
+INNER JOIN "Person" t3
+ON t3."id" = t2."child_id"
+ORDER BY t1."id", t3."id"
+```
+
+#### Using column member pointers
+
+The self-join below references `Person` twice (as `t1` and `t3`). Member pointers
+handle this cleanly by passing the alias as a second template argument:
+
+```cpp
+const auto get_people =
+  select_from<Person, "t1">(
+      col<&Person::last_name, "t1"> | as<"last_name">,
+      col<&Person::first_name, "t1"> | as<"first_name_parent">,
+      col<&Person::first_name, "t3"> | as<"first_name_child">,
+      (col<&Person::age, "t1"> - col<&Person::age, "t3">) | as<"parent_age_at_birth">) |
+  inner_join<Relationship, "t2">(col<&Person::id, "t1"> == col<&Relationship::parent_id, "t2">) |
+  inner_join<Person, "t3">(col<&Person::id, "t3"> == col<&Relationship::child_id, "t2">) |
+  order_by(col<&Person::id, "t1">, col<&Person::id, "t3">) | to<std::vector<ParentAndChild>>;
+```
+
+This generates SQL like:
+
+```sql
+SELECT t1."last_name" AS "last_name",
+       t1."first_name" AS "first_name_parent",
+       t3."first_name" AS "first_name_child",
+       (t1."age") - (t3."age") AS "parent_age_at_birth"
 FROM "Person" t1
 INNER JOIN "Relationship" t2
 ON t1."id" = t2."parent_id"
@@ -387,6 +465,55 @@ INNER JOIN (
 ON t1."id" = t2."id"
 ORDER BY t1."id", t2."id"
 ```
+
+#### Using column member pointers
+
+Here the outer query's source table (`Person` as `t1`) and the joined subquery are
+referenced with member pointers. Columns from the subquery still resolve through
+`Person`, so they keep the `col<&Person::column, "alias">` form:
+
+```cpp
+const auto get_children =
+  select_from<Relationship, "t1">(col<&Relationship::parent_id, "t1"> | as<"id">,
+                                  col<&Person::first_name, "t2"> | as<"first_name">,
+                                  col<&Person::age, "t2"> | as<"age">) |
+  inner_join<Person, "t2">(col<&Person::id, "t2"> == col<&Relationship::child_id, "t1">);
+
+const auto get_people =
+  select_from<Person, "t1">(
+      col<&Person::last_name, "t1"> | as<"last_name">,
+      col<&Person::first_name, "t1"> | as<"first_name_parent">,
+      col<&Person::first_name, "t2"> | as<"first_name_child">,
+      (col<&Person::age, "t1"> - col<&Person::age, "t2">) | as<"parent_age_at_birth">) |
+  inner_join<"t2">(
+    get_children, // Use the subquery as the source
+    col<&Person::id, "t1"> == "id"_t2) |
+  order_by(col<&Person::id, "t1">, "id"_t2) | to<std::vector<ParentAndChild>>;
+```
+
+This generates SQL like:
+
+```sql
+SELECT t1."last_name" AS "last_name",
+       t1."first_name" AS "first_name_parent",
+       t2."first_name" AS "first_name_child",
+       (t1."age") - (t2."age") AS "parent_age_at_birth"
+FROM "Person" t1
+INNER JOIN (
+    SELECT t1."parent_id" AS "id",
+           t2."first_name" AS "first_name",
+           t2."age" AS "age"
+    FROM "Relationship" t1
+    INNER JOIN "Person" t2
+    ON t2."id" = t1."child_id"
+) t2
+ON t1."id" = t2."id"
+ORDER BY t1."id", t2."id"
+```
+
+When the subquery itself is the query source (the `Or:` example above), its output
+columns cannot be referenced with member pointers, so those use the `"column"_tN`
+literal form.
 
 Or:
 ```cpp
@@ -473,6 +600,27 @@ std::vector<Person> get_people(const auto& conn,
 
 // This will be rejected
 get_people(conn, "Homer' OR '1'='1");  // SQL injection attempt
+```
+
+These same compile-time checks apply when columns are referenced with member
+pointers:
+
+```cpp
+// Compile-time error: No such member "color" in Person
+const auto query = read<std::vector<Person>> |
+                   where(col<&Person::color> == "blue");
+
+// Compile-time error: Cannot compare "age" to a string
+const auto query = read<std::vector<Person>> |
+                   where(col<&Person::age> == "Homer");
+
+// Runtime protection against SQL injection
+std::vector<Person> get_people(const auto& conn,
+                              const sqlgen::AlphaNumeric& first_name) {
+    using namespace sqlgen;
+    return (read<std::vector<Person>> |
+            where(col<&Person::first_name> == first_name))(conn).value();
+}
 ```
 
 ## Documentation

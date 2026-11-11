@@ -52,6 +52,23 @@ DELETE FROM "Person"
 WHERE "first_name" = 'Hugo';
 ```
 
+#### Using column member pointers
+
+The same query can reference `Person`'s fields with member pointers. The generated
+SQL qualifies the referenced column with the table name:
+
+```cpp
+const auto query = delete_from<Person> |
+                   where(col<&Person::first_name> == "Hugo");
+```
+
+This generates the following SQL:
+
+```sql
+DELETE FROM "Person"
+WHERE "Person"."first_name" = 'Hugo';
+```
+
 Note that `"..."_c` refers to the name of the column. If such a field does not
 exist on the struct `Person`, the code will fail to compile. `"..."_c` is
 defined in the namespace `sqlgen::literals`.
@@ -90,6 +107,20 @@ This generates the following SQL:
 ```sql
 DELETE FROM "Person"
 WHERE ("age" >= 18) AND ("last_name" = 'Simpson');
+```
+
+#### Using column member pointers
+
+```cpp
+const auto query = delete_from<Person> |
+                   where(col<&Person::age> >= 18 and col<&Person::last_name> == "Simpson");
+```
+
+This generates the following SQL:
+
+```sql
+DELETE FROM "Person"
+WHERE ("Person"."age" >= 18) AND ("Person"."last_name" = 'Simpson');
 ```
 
 It is strongly recommended that you use `using namespace sqlgen` and `using namespace sqlgen::literals`. However,

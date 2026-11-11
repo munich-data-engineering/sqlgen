@@ -70,10 +70,49 @@ INNER JOIN "Person" t3 ON t3."id" = t2."child_id"
 ORDER BY t1."id", t3."id"
 ```
 
+### Column Member Pointers
+
+As an alternative to the literals above, a column can be referenced with a member
+pointer to the struct field through the `col` template. This derives the column
+name from the struct rather than a string literal:
+
+```cpp
+using namespace sqlgen;
+
+// References the "age" column of the Person struct
+const auto age_col = col<&Person::age>;
+```
+
+Column member pointers can be combined with table
+aliases by passing the alias as the second template argument. This is especially
+handy for self-joins, where the same table appears more than once:
+
+```cpp
+const auto get_people =
+    select_from<Person, "t1">(
+        col<&Person::first_name, "t1">,
+        col<&Person::age, "t1"> - col<&Person::age, "t3">)
+    | inner_join<Person, "t3">(col<&Person::id, "t1"> == col<&Person::id, "t3">);
+```
+
+This produces SQL like:
+
+```sql
+SELECT t1."first_name", (t1."age") - (t3."age")
+FROM "Person" t1
+INNER JOIN "Person" t3 ON t1."id" = t3."id"
+```
+
+For a full rundown of the operations supported on columns, see
+[`sqlgen::col`](col.md).
+
 ### Supported Suffixes
 
 - `_c` — Reference a column by name (e.g., `"age"_c`)
 - `_t1`, `_t2`, ..., `_t99` — Reference a column by name and table alias (e.g., `"id"_t2`)
+
+Instead of these literals, you can reference columns with a member pointer using
+the `col` template, e.g. `col<&Person::age>` (see [Column Member Pointers](#column-member-pointers)).
 
 All these literals are defined in the `sqlgen::literals` namespace. It is strongly recommended to use:
 
