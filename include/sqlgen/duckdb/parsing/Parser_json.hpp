@@ -32,6 +32,16 @@ struct Parser<JSON<T>> {
       return error(e.what());
     }
   }
+
+  static Result<Nothing> write_to_vector(duckdb_vector _vector, idx_t _index,
+                                         const JSON<T>& _value) {
+    try {
+      return Parser<std::string>::write_to_vector(
+          _vector, _index, rfl::json::write(_value.value()));
+    } catch (const std::exception& e) {
+      return error(e.what());
+    }
+  }
 };
 
 }  // namespace sqlgen::duckdb::parsing

@@ -22,6 +22,7 @@
 #include "../dynamic/Write.hpp"
 #include "../internal/iterator_t.hpp"
 #include "../internal/remove_auto_incr_primary_t.hpp"
+#include "../internal/supports_collections.hpp"
 #include "../internal/to_container.hpp"
 #include "../is_connection.hpp"
 #include "../sqlgen_api.hpp"
@@ -31,6 +32,7 @@
 #include "DuckDBResult.hpp"
 #include "Iterator.hpp"
 #include "to_sql.hpp"
+#include "write_data_chunk.hpp"
 
 namespace sqlgen::duckdb {
 
@@ -156,16 +158,74 @@ class SQLGEN_API Connection {
   template <class ItBegin, class ItEnd>
   Result<Nothing> write_to_appender(ItBegin _begin, ItEnd _end,
                                     duckdb_appender _appender) {
-    for (auto it = _begin; it < _end; ++it) {
-      const auto res = write_row(*it, _appender);
-      if (!res) {
-        return res;
+    using ValueType =
+        std::remove_cvref_t<typename std::iterator_traits<ItBegin>::value_type>;
+    if constexpr (chunk_writer::has_vector_field_v<ValueType>) {
+      return write_data_chunks(_begin, _end, _appender);
+    } else {
+      for (auto it = _begin; it < _end; ++it) {
+        const auto res = write_row(*it, _appender);
+        if (!res) {
+          return res;
+        }
+        const auto state = duckdb_appender_end_row(_appender);
+        if (state == DuckDBError) {
+          return error(duckdb_appender_error(_appender));
+        }
       }
-      const auto state = duckdb_appender_end_row(_appender);
-      if (state == DuckDBError) {
-        return error(duckdb_appender_error(_appender));
+      return Nothing{};
+    }
+  }
+
+  template <class ItBegin, class ItEnd>
+  Result<Nothing> write_data_chunks(ItBegin _begin, ItEnd _end,
+                                    duckdb_appender _appender) {
+    const auto column_count = duckdb_appender_column_count(_appender);
+    std::vector<duckdb_logical_type> types(column_count);
+    for (idx_t i = 0; i < column_count; ++i) {
+      types[i] = duckdb_appender_column_type(_appender, i);
+      if (!types[i]) {
+        for (idx_t j = 0; j < i; ++j) {
+          duckdb_destroy_logical_type(&types[j]);
+        }
+        return error("Could not retrieve DuckDB appender column type.");
       }
     }
+
+    auto destroy_types = [&] {
+      for (auto& type : types) duckdb_destroy_logical_type(&type);
+    };
+
+    auto it = _begin;
+    while (it != _end) {
+      auto chunk = duckdb_create_data_chunk(types.data(), column_count);
+      if (!chunk) {
+        destroy_types();
+        return error("Could not create DuckDB data chunk.");
+      }
+
+      idx_t row = 0;
+      for (; it != _end && row < duckdb_vector_size(); ++it, ++row) {
+        auto result = chunk_writer::assign_row(chunk, row, *it);
+        if (!result) {
+          duckdb_destroy_data_chunk(&chunk);
+          destroy_types();
+          return result;
+        }
+      }
+      duckdb_data_chunk_set_size(chunk, row);
+      if (duckdb_append_data_chunk(_appender, chunk) == DuckDBError) {
+        const auto appender_error = duckdb_appender_error(_appender);
+        const auto message =
+            appender_error ? std::string(appender_error)
+                           : std::string("Could not append DuckDB data chunk.");
+        duckdb_destroy_data_chunk(&chunk);
+        destroy_types();
+        return error(message);
+      }
+      duckdb_destroy_data_chunk(&chunk);
+    }
+    destroy_types();
     return Nothing{};
   }
 
@@ -202,6 +262,9 @@ template <class ValueType>
 struct IteratorType<ValueType, duckdb::Connection> {
   using Type = duckdb::Iterator<ValueType>;
 };
+
+template <>
+struct supports_collections<duckdb::Connection> : std::true_type {};
 
 static_assert(is_connection<duckdb::Connection>,
               "Must fulfill the is_connection concept.");

@@ -14,6 +14,7 @@
 #include "Result.hpp"
 #include "dynamic/Write.hpp"
 #include "internal/batch_size.hpp"
+#include "internal/supports_collections.hpp"
 #include "internal/to_str_vec.hpp"
 #include "is_connection.hpp"
 #include "transpilation/to_create_table.hpp"
@@ -27,6 +28,8 @@ Result<Ref<Connection>> write(const Ref<Connection>& _conn, ItBegin _begin,
                               ItEnd _end) noexcept {
   using T =
       std::remove_cvref_t<typename std::iterator_traits<ItBegin>::value_type>;
+
+  internal::assert_collections_supported<Connection, T>();
 
   const auto start_write = [&](const auto&) -> Result<Nothing> {
     const auto write_stmt =

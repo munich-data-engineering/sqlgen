@@ -10,6 +10,7 @@
 #include "sqlgen/dynamic/Column.hpp"
 #include "sqlgen/dynamic/Join.hpp"
 #include "sqlgen/dynamic/Operation.hpp"
+#include "sqlgen/internal/collection_suffix.hpp"
 #include "sqlgen/internal/collect/vector.hpp"
 #include "sqlgen/internal/strings/strings.hpp"
 
@@ -271,6 +272,7 @@ std::string condition_to_sql_impl(const ConditionType& _condition) noexcept {
 std::string column_to_sql_definition(const dynamic::Table& _table,
                                      const dynamic::Column& _col) noexcept {
   return wrap_in_quotes(_col.name) + " " + type_to_sql(_col.type) +
+         internal::collection_suffix(_col.collection_depth) +
          properties_to_sql(_table, _col);
 }
 

@@ -3,7 +3,6 @@
 #include <ranges>
 #include <rfl.hpp>
 #include <sstream>
-#include <stdexcept>
 #include <type_traits>
 
 #include "sqlgen/dynamic/Join.hpp"

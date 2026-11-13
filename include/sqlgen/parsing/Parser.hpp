@@ -13,5 +13,6 @@
 #include "Parser_unique.hpp"
 #include "Parser_unique_ptr.hpp"
 #include "Parser_varchar.hpp"
+#include "Parser_vector.hpp"
 
 #endif
