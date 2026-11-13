@@ -40,25 +40,29 @@ struct PairWrapper {
       const PairWrapper&,
       const PairWrapper<AliasOrTable, OtherTableType, OtherAliasOrTableType,
                         _is_table>&) noexcept {
-    if constexpr (!_is_table &&
-                  std::is_same_v<AliasOrTable,
-                                 std::remove_cvref_t<OtherAliasOrTableType>>) {
-      return PairWrapper<AliasOrTable, OtherTableType, OtherAliasOrTableType,
-                         _is_table>{};
+    if constexpr (!_is_table) {
+      if constexpr (std::is_same_v<AliasOrTable, std::remove_cvref_t<
+                                                     OtherAliasOrTableType>>) {
+        return PairWrapper<AliasOrTable, OtherTableType, OtherAliasOrTableType,
+                           _is_table>{};
+      } else {
+        return PairWrapper{};
+      }
 
-    } else if constexpr (_is_table &&
-                         internal::get_name_from_literal<AliasOrTable>() ==
-                             get_tablename_str_view<OtherTableType>()) {
-      static_assert(std::is_same_v<OtherAliasOrTableType, Literal<"">> ||
-                        std::is_same_v<OtherAliasOrTableType, Nothing>,
-                    "When you reference the column via the table name (in "
-                    "other words, via "
-                    "member pointers), you cannot set an alias for the table.");
-      return PairWrapper<AliasOrTable, OtherTableType, OtherAliasOrTableType,
-                         _is_table>{};
-
-    } else {
-      return PairWrapper{};
+    } else if constexpr (_is_table) {
+      if constexpr (internal::get_name_from_literal<AliasOrTable>() ==
+                    get_tablename_str_view<OtherTableType>()) {
+        static_assert(
+            std::is_same_v<OtherAliasOrTableType, Literal<"">> ||
+                std::is_same_v<OtherAliasOrTableType, Nothing>,
+            "When you reference the column via the table name (in "
+            "other words, via "
+            "member pointers), you cannot set an alias for the table.");
+        return PairWrapper<AliasOrTable, OtherTableType, OtherAliasOrTableType,
+                           _is_table>{};
+      } else {
+        return PairWrapper{};
+      }
     }
   }
 };
