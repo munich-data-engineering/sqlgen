@@ -7,6 +7,7 @@
 #include <sqlgen.hpp>
 #include <sqlgen/mysql.hpp>
 #include <vector>
+
 #include "test_helpers.hpp"
 
 namespace test_like_with_member_pointers {
@@ -44,6 +45,7 @@ TEST(mysql, test_like_with_member_pointers) {
   const auto people3 =
       mysql::connect(credentials)
           .and_then(drop<Person> | if_exists)
+          .and_then(write(std::ref(people1)))
           .and_then(sqlgen::read<std::vector<Person>> |
                     where(col<&Person::first_name>.not_like("H%")) |
                     order_by(col<&Person::age>))
@@ -52,6 +54,7 @@ TEST(mysql, test_like_with_member_pointers) {
   const auto people4 =
       mysql::connect(credentials)
           .and_then(drop<Person> | if_exists)
+          .and_then(write(std::ref(people1)))
           .and_then(sqlgen::read<std::vector<Person>> |
                     where(col<&Person::first_name>.like("O'Reilly")) |
                     order_by(col<&Person::age>))

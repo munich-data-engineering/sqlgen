@@ -8,6 +8,7 @@
 #include <sqlgen.hpp>
 #include <sqlgen/postgres.hpp>
 #include <vector>
+
 #include "test_helpers.hpp"
 
 namespace test_is_null_with_member_pointers {
@@ -23,32 +24,29 @@ TEST(postgres, test_is_null_with_member_pointers) {
   using namespace sqlgen;
   const auto people1 = std::vector<Person>(
       {Person{.id = 0, .first_name = "Homer", .last_name = "Simpson"},
-       Person{.id = 1, .first_name = "Bart", .last_name = "Simpson",
-              .age = 10},
-       Person{.id = 2, .first_name = "Lisa", .last_name = "Simpson",
-              .age = 8},
-       Person{.id = 3, .first_name = "Maggie", .last_name = "Simpson",
-              .age = 0},
+       Person{.id = 1, .first_name = "Bart", .last_name = "Simpson", .age = 10},
+       Person{.id = 2, .first_name = "Lisa", .last_name = "Simpson", .age = 8},
+       Person{
+           .id = 3, .first_name = "Maggie", .last_name = "Simpson", .age = 0},
        Person{.id = 4, .first_name = "Hugo", .last_name = "Simpson"}});
 
   const auto credentials = sqlgen::postgres::test::make_credentials();
 
-  const auto people2 =
-      postgres::connect(credentials)
-          .and_then(drop<Person> | if_exists)
-          .and_then(write(std::ref(people1)))
-          .and_then(sqlgen::read<std::vector<Person>> |
-                    where(col<&Person::age>.is_null()) |
-                    order_by(col<&Person::first_name>.desc()))
-          .value();
+  const auto people2 = postgres::connect(credentials)
+                           .and_then(drop<Person> | if_exists)
+                           .and_then(write(std::ref(people1)))
+                           .and_then(sqlgen::read<std::vector<Person>> |
+                                     where(col<&Person::age>.is_null()) |
+                                     order_by(col<&Person::first_name>.desc()))
+                           .value();
 
-  const auto people3 =
-      postgres::connect(credentials)
-          .and_then(drop<Person> | if_exists)
-          .and_then(sqlgen::read<std::vector<Person>> |
-                    where(col<&Person::age>.is_not_null()) |
-                    order_by(col<&Person::age>))
-          .value();
+  const auto people3 = postgres::connect(credentials)
+                           .and_then(drop<Person> | if_exists)
+                           .and_then(write(std::ref(people1)))
+                           .and_then(sqlgen::read<std::vector<Person>> |
+                                     where(col<&Person::age>.is_not_null()) |
+                                     order_by(col<&Person::age>))
+                           .value();
 
   const std::string expected1 =
       R"([{"id":4,"first_name":"Hugo","last_name":"Simpson"},{"id":0,"first_name":"Homer","last_name":"Simpson"}])";

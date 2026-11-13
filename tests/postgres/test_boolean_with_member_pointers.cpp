@@ -7,6 +7,7 @@
 #include <sqlgen.hpp>
 #include <sqlgen/postgres.hpp>
 #include <vector>
+
 #include "test_helpers.hpp"
 
 namespace test_boolean_with_member_pointers {
@@ -51,15 +52,18 @@ TEST(postgres, test_boolean_with_member_pointers) {
   const auto without_children =
       postgres::connect(credentials)
           .and_then(drop<Person> | if_exists)
+          .and_then(write(std::ref(people1)))
           .and_then(sqlgen::read<std::vector<Person>> |
                     where(col<&Person::has_children> == false) |
                     order_by(col<&Person::id>))
           .value();
 
-  EXPECT_EQ(rfl::json::write(with_children),
-            R"([{"id":0,"first_name":"Homer","last_name":"Simpson","has_children":true}])");
-  EXPECT_EQ(rfl::json::write(without_children),
-            R"([{"id":1,"first_name":"Bart","last_name":"Simpson","has_children":false},{"id":2,"first_name":"Lisa","last_name":"Simpson","has_children":false},{"id":3,"first_name":"Maggie","last_name":"Simpson","has_children":false}])");
+  EXPECT_EQ(
+      rfl::json::write(with_children),
+      R"([{"id":0,"first_name":"Homer","last_name":"Simpson","has_children":true}])");
+  EXPECT_EQ(
+      rfl::json::write(without_children),
+      R"([{"id":1,"first_name":"Bart","last_name":"Simpson","has_children":false},{"id":2,"first_name":"Lisa","last_name":"Simpson","has_children":false},{"id":3,"first_name":"Maggie","last_name":"Simpson","has_children":false}])");
 }
 
 }  // namespace test_boolean_with_member_pointers
