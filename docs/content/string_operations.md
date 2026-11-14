@@ -21,6 +21,22 @@ const auto get_reports =
 
 This query produces a list of people with their full names in the format "LASTNAME, Firstname" (with the last name in uppercase) and ensures the last name has no leading or trailing whitespace.
 
+## Using member pointers
+
+Every column literal above (`"first_name"_c`, `"last_name"_c`, …) can be replaced
+with a member pointer to the corresponding struct field through the `col`
+template, e.g. `col<&Person::first_name>`. The motivating example rewritten with
+member pointers:
+
+```cpp
+const auto get_reports =
+    select_from<Person>(
+        concat(upper(col<&Person::last_name>), ", ", col<&Person::first_name>).as<"full_name">(),
+        trim(col<&Person::last_name>).as<"last_name_trimmed">()
+    )
+    | to<std::vector<PersonReport>>;
+```
+
 ## String Functions
 
 ### `length`

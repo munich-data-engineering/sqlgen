@@ -163,11 +163,45 @@ if you do not want to do that, you can rewrite the example above as follows:
 
 ```cpp
 const auto query = sqlgen::update<Person>(
-                    sqlgen::col<"first_name">.set(sqlgen::col<"last_name">),
-                    sqlgen::col<"age">.set(100)) |
-                   sqlgen::where(sqlgen::col<"age"> > 0);
+                     sqlgen::col<"first_name">.set(sqlgen::col<"last_name">),
+                     sqlgen::col<"age">.set(100)) |
+                    sqlgen::where(sqlgen::col<"age"> > 0);
 
 const auto result = query(conn);
+```
+
+## Using member pointers
+
+Instead of the `"..."_c` column literals, you can reference `Person`'s fields
+with member pointers through the `col` template. The generated SQL is the same;
+only the C++ reference to the column changes:
+
+```cpp
+const auto query = update<Person>(
+                     col<&Person::age>.set(100),
+                     col<&Person::first_name>.set("New Name"));
+```
+
+This generates the following SQL:
+
+```sql
+UPDATE "Person"
+SET "age" = 100, "first_name" = 'New Name';
+```
+
+The `where` clause and the other examples above all work with member pointers in
+the same way. For instance, setting a column to the value of another column:
+
+```cpp
+const auto query = update<Person>(col<&Person::first_name>.set(col<&Person::last_name>)) |
+                   where(col<&Person::age> > 18);
+```
+
+and setting a nullable value:
+
+```cpp
+const auto query1 = update<Person>(col<&Person::age>.set(std::nullopt)) |
+                    where(col<&Person::first_name> == "Hugo");
 ```
 
 ## Notes

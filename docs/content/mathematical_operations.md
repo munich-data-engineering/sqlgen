@@ -27,6 +27,25 @@ const auto get_children =
 
 This query groups people by last name, filters for those under 18, and computes the average age (rounded), the maximum age plus one, and the minimum age plus one.
 
+## Using member pointers
+
+Every column literal above (`"age"_c`, `"last_name"_c`, …) can be replaced with a
+member pointer to the corresponding struct field through the `col` template, e.g.
+`col<&Person::age>`. The motivating example rewritten with member pointers:
+
+```cpp
+const auto get_children =
+    select_from<Person>(
+        col<&Person::last_name>,
+        round(avg(cast<double>(col<&Person::age>))).as<"avg_age">(),
+        max(cast<double>(col<&Person::age>) + 1.0).as<"max_age_plus_one">(),
+        (min(cast<double>(col<&Person::age>)) + 1.0).as<"min_age_plus_one">()
+    )
+    | where(col<&Person::age> < 18)
+    | group_by(col<&Person::last_name>)
+    | to<std::vector<Children>>;
+```
+
 ## Mathematical Functions
 
 ### `abs`

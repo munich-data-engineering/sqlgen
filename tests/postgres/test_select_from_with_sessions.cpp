@@ -58,12 +58,12 @@ TEST(postgres, test_range_select_from_with_sessions) {
 
   const auto get_birthdays =
       select_from<Person>(
-          ("birthday"_c + std::chrono::days(10)) | as<"birthday">,
-          ((cast<Date>(concat(cast<std::string>(year("birthday"_c)), "-",
-                              cast<std::string>(month("birthday"_c)), "-",
-                              cast<std::string>(day("birthday"_c))))) +
-           std::chrono::days(10)) |
-              as<"birthday_recreated">,
+           cast<Date>(("birthday"_c + std::chrono::days(10))) | as<"birthday">,
+           cast<Date>((cast<Date>(concat(cast<std::string>(year("birthday"_c)), "-",
+                               cast<std::string>(month("birthday"_c)), "-",
+                               cast<std::string>(day("birthday"_c))))) +
+            std::chrono::days(10)) |
+               as<"birthday_recreated">,
           days_between("birthday"_c, Date("2011-01-01")) | as<"age_in_days">,
           unixepoch("birthday"_c + std::chrono::days(10)) |
               as<"birthday_unixepoch">,
@@ -80,7 +80,7 @@ TEST(postgres, test_range_select_from_with_sessions) {
                              .value();
 
   const std::string expected_query =
-      R"(SELECT "birthday" + INTERVAL '10 days' AS "birthday", cast((cast(extract(YEAR from "birthday") as TEXT) || '-' || cast(extract(MONTH from "birthday") as TEXT) || '-' || cast(extract(DAY from "birthday") as TEXT)) as DATE) + INTERVAL '10 days' AS "birthday_recreated", cast('2011-01-01' as DATE) - cast("birthday" as DATE) AS "age_in_days", extract(EPOCH FROM "birthday" + INTERVAL '10 days') AS "birthday_unixepoch", extract(HOUR from cast("birthday" as TIMESTAMP)) AS "hour", extract(MINUTE from cast("birthday" as TIMESTAMP)) AS "minute", extract(SECOND from cast("birthday" as TIMESTAMP)) AS "second", extract(DOW from "birthday") AS "weekday" FROM "Person" ORDER BY "id")";
+      R"(SELECT cast("birthday" + INTERVAL '10 days' as DATE) AS "birthday", cast(cast((cast(extract(YEAR from "birthday") as TEXT) || '-' || cast(extract(MONTH from "birthday") as TEXT) || '-' || cast(extract(DAY from "birthday") as TEXT)) as DATE) + INTERVAL '10 days' as DATE) AS "birthday_recreated", cast('2011-01-01' as DATE) - cast("birthday" as DATE) AS "age_in_days", extract(EPOCH FROM "birthday" + INTERVAL '10 days') AS "birthday_unixepoch", extract(HOUR from cast("birthday" as TIMESTAMP)) AS "hour", extract(MINUTE from cast("birthday" as TIMESTAMP)) AS "minute", extract(SECOND from cast("birthday" as TIMESTAMP)) AS "second", extract(DOW from "birthday") AS "weekday" FROM "Person" ORDER BY "id")";
 
   const std::string expected =
       R"([{"birthday":"1970-01-11","birthday_recreated":"1970-01-11","birthday_unixepoch":864000,"age_in_days":14975.0,"hour":0,"minute":0,"second":0,"weekday":4},{"birthday":"2000-01-11","birthday_recreated":"2000-01-11","birthday_unixepoch":947548800,"age_in_days":4018.0,"hour":0,"minute":0,"second":0,"weekday":6},{"birthday":"2002-01-11","birthday_recreated":"2002-01-11","birthday_unixepoch":1010707200,"age_in_days":3287.0,"hour":0,"minute":0,"second":0,"weekday":2},{"birthday":"2010-01-11","birthday_recreated":"2010-01-11","birthday_unixepoch":1263168000,"age_in_days":365.0,"hour":0,"minute":0,"second":0,"weekday":5}])";

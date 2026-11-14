@@ -4,8 +4,6 @@
 #include <rfl.hpp>
 #include <type_traits>
 
-#include "../Literal.hpp"
-#include "Col.hpp"
 #include "group_by_t.hpp"
 #include "make_field.hpp"
 #include "remove_as_t.hpp"

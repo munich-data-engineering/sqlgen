@@ -2,6 +2,7 @@
 #define SQLGEN_TRANSPILATION_TO_SETS_HPP_
 
 #include <rfl.hpp>
+#include <rfl/internal/StringLiteral.hpp>
 #include <string>
 #include <type_traits>
 #include <utility>
@@ -26,13 +27,18 @@ namespace sqlgen::transpilation {
 template <class T, class SetType>
 struct ToSet;
 
-template <class T, rfl::internal::StringLiteral _name, class ToType>
-struct ToSet<T, Set<transpilation::Col<_name>, ToType>> {
+template <class T, rfl::internal::StringLiteral _name,
+          rfl::internal::StringLiteral _alias_or_table, bool _is_table,
+          class ToType>
+struct ToSet<
+    T, Set<transpilation::Col<_name, _alias_or_table, _is_table>, ToType>> {
   static_assert(
-      all_columns_exist<T, transpilation::Col<_name>>(),
+      all_columns_exist<
+          T, transpilation::Col<_name, _alias_or_table, _is_table>>(),
       "At least one column referenced in your SET query does not exist.");
-  static_assert(std::is_convertible_v<underlying_t<T, Value<ToType>>,
-                                      underlying_t<T, Col<_name>>>,
+  static_assert(std::is_convertible_v<
+                    underlying_t<T, Value<ToType>>,
+                    underlying_t<T, Col<_name, _alias_or_table, _is_table>>>,
                 "Must be convertible.");
 
   dynamic::Update::Set operator()(const auto& _set) const {
@@ -44,17 +50,25 @@ struct ToSet<T, Set<transpilation::Col<_name>, ToType>> {
 };
 
 template <class T, rfl::internal::StringLiteral _name1,
-          rfl::internal::StringLiteral _name2>
-struct ToSet<T, Set<transpilation::Col<_name1>, transpilation::Col<_name2>>> {
+          rfl::internal::StringLiteral _alias_or_table1, bool _is_table1,
+          rfl::internal::StringLiteral _name2,
+          rfl::internal::StringLiteral _alias_or_table2, bool _is_table2>
+struct ToSet<T, Set<transpilation::Col<_name1, _alias_or_table1, _is_table1>,
+                    transpilation::Col<_name2, _alias_or_table2, _is_table2>>> {
   static_assert(
-      all_columns_exist<T, transpilation::Col<_name1>>(),
+      all_columns_exist<
+          T, transpilation::Col<_name1, _alias_or_table1, _is_table1>>(),
       "At least one column referenced in your SET query does not exist.");
   static_assert(
-      all_columns_exist<T, transpilation::Col<_name2>>(),
+      all_columns_exist<
+          T, transpilation::Col<_name2, _alias_or_table2, _is_table2>>(),
       "At least one column referenced in your SET query does not exist.");
   static_assert(
-      std::is_convertible_v<underlying_t<T, transpilation::Col<_name2>>,
-                            underlying_t<T, transpilation::Col<_name1>>>,
+      std::is_convertible_v<
+          underlying_t<
+              T, transpilation::Col<_name2, _alias_or_table2, _is_table2>>,
+          underlying_t<
+              T, transpilation::Col<_name1, _alias_or_table1, _is_table1>>>,
       "A column referenced in your SET query is not convertible to the column "
       "it is being assigned to.");
 

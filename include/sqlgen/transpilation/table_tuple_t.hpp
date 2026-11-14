@@ -57,7 +57,9 @@ struct TableTupleType<TableOrQueryType, AliasType, rfl::Tuple<JoinTypes...>> {
   using Type = typename decltype(helper)::Type;
 
   static_assert(
-      !rfl::define_literal_t<typename JoinTypes::Alias...>::has_duplicates(),
+      !rfl::define_literal_t<std::conditional_t<
+          !std::is_same_v<typename JoinTypes::Alias, Literal<"">>,
+          typename JoinTypes::Alias, rfl::Literal<>>...>::has_duplicates(),
       "Your SELECT FROM query cannot contain duplicate aliases.");
 };
 

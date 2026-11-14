@@ -110,8 +110,8 @@ std::vector<Person> get_people(const auto& conn,
                                const sqlgen::AlphaNumeric& first_name) {
     using namespace sqlgen;
     using namespace sqlgen::literals;
-    const auto query = sqlgen::read<std::vector<Person>> | 
-                       where("first_name"_c == first_name);
+    const auto query = sqlgen::read<std::vector<Person>> |
+                        where(col<&Person::first_name> == first_name);
     return query(conn).value();
 }
 ```

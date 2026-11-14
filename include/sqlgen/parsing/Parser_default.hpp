@@ -27,7 +27,8 @@ struct Parser {
 
     } else {
       if (!_str) {
-        return error("NULL value encounted: Numeric value cannot be NULL.");
+        return rfl::error(
+            "NULL value encounted: Numeric value cannot be NULL.");
       }
 
       try {
@@ -52,7 +53,7 @@ struct Parser {
           if (auto res = rfl::string_to_enum<Type>(*_str)) {
             return Type{*res};
           } else {
-            return error(res.error());
+            return rfl::error(res.error());
           }
 
         } else {
@@ -60,7 +61,7 @@ struct Parser {
         }
 
       } catch (std::exception& e) {
-        return error(e.what());
+        return rfl::error(e.what());
       }
     }
   }

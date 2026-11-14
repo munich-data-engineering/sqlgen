@@ -117,7 +117,26 @@ SELECT datetime("birthday", '+10 days') AS "birthday", ...
 SELECT "birthday" + INTERVAL '10 days' AS "birthday", ...
 ```
 
----
+### Using member pointers
+
+Every column literal above (`"birthday"_c`, `"id"_c`, …) can be replaced with a
+member pointer to the corresponding struct field through the `col` template, e.g.
+`col<&Person::birthday>`. The example above rewritten with member pointers:
+
+```cpp
+const auto get_birthdays = select_from<Person>(
+    (col<&Person::birthday> + std::chrono::days(10)) | as<"birthday">,
+    (cast<Date>(concat(cast<std::string>(year(col<&Person::birthday>)), "-",
+                        cast<std::string>(month(col<&Person::birthday>)), "-",
+                        cast<std::string>(day(col<&Person::birthday>))))) | as<"birthday_recreated">,
+    days_between(col<&Person::birthday>, Date("2011-01-01")) | as<"age_in_days">,
+    unixepoch(col<&Person::birthday> + std::chrono::days(10)) | as<"birthday_unixepoch">,
+    hour(col<&Person::birthday>) | as<"hour">,
+    minute(col<&Person::birthday>) | as<"minute">,
+    second(col<&Person::birthday>) | as<"second">,
+    weekday(col<&Person::birthday>) | as<"weekday">
+) | order_by(col<&Person::id>) | to<std::vector<Birthday>>;
+```
 
 ### Notes
 

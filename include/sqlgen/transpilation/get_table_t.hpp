@@ -9,37 +9,77 @@
 #include "../Literal.hpp"
 #include "../Result.hpp"
 #include "../dynamic/JoinType.hpp"
+#include "../internal/get_name_from_literal.hpp"
 #include "TableWrapper.hpp"
+#include "get_tablename.hpp"
+#include "wrap_in_optional_t.hpp"
 
 namespace sqlgen::transpilation {
 
-template <class Alias, class _TableType, class _AliasType>
-struct PairWrapper {
-  using TableType = _TableType;
-  using AliasType = _AliasType;
+template <class T>
+struct RemoveWrapInOptional {
+  using Type = T;
+};
 
-  template <class OtherTableType, class OtherAliasType>
+template <class T, class U>
+struct RemoveWrapInOptional<WrapInOptional<T, U>> {
+  using Type = typename WrapInOptional<T, U>::NamedTupleType;
+};
+
+template <class T>
+using remove_wrap_in_optional_t = typename RemoveWrapInOptional<T>::Type;
+
+template <class AliasOrTable, class _TableType, class _AliasOrTableType,
+          bool _is_table>
+struct PairWrapper {
+  using TableType = remove_wrap_in_optional_t<_TableType>;
+  using AliasOrTableType = _AliasOrTableType;
+
+  template <class OtherTableType, class OtherAliasOrTableType>
   friend consteval auto operator||(
       const PairWrapper&,
-      const PairWrapper<Alias, OtherTableType, OtherAliasType>&) noexcept {
-    if constexpr (std::is_same_v<Alias, std::remove_cvref_t<OtherAliasType>>) {
-      return PairWrapper<Alias, OtherTableType, OtherAliasType>{};
-    } else {
-      return PairWrapper{};
+      const PairWrapper<AliasOrTable, OtherTableType, OtherAliasOrTableType,
+                        _is_table>&) noexcept {
+    if constexpr (!_is_table) {
+      if constexpr (std::is_same_v<AliasOrTable, std::remove_cvref_t<
+                                                     OtherAliasOrTableType>>) {
+        return PairWrapper<AliasOrTable, OtherTableType, OtherAliasOrTableType,
+                           _is_table>{};
+      } else {
+        return PairWrapper{};
+      }
+
+    } else if constexpr (_is_table) {
+      if constexpr (internal::get_name_from_literal<AliasOrTable>() ==
+                    get_tablename_str_view<OtherTableType>()) {
+        static_assert(
+            std::is_same_v<OtherAliasOrTableType, Literal<"">> ||
+                std::is_same_v<OtherAliasOrTableType, Nothing>,
+            "When you reference the column via the table name (in "
+            "other words, via "
+            "member pointers), you cannot set an alias for the table.");
+        return PairWrapper<AliasOrTable, OtherTableType, OtherAliasOrTableType,
+                           _is_table>{};
+      } else {
+        return PairWrapper{};
+      }
     }
   }
 };
 
-template <class Alias, class T>
+template <class AliasOrTable, class T, bool _is_table>
 struct GetTableType;
 
-template <rfl::internal::StringLiteral _alias, class... TableTypes,
-          class... AliasTypes>
-struct GetTableType<Literal<_alias>,
-                    rfl::Tuple<std::pair<TableTypes, AliasTypes>...>> {
+template <rfl::internal::StringLiteral _table_or_alias, class... TableTypes,
+          class... AliasOrTableTypes, bool _is_table>
+struct GetTableType<Literal<_table_or_alias>,
+                    rfl::Tuple<std::pair<TableTypes, AliasOrTableTypes>...>,
+                    _is_table> {
   static constexpr auto wrapper =
-      (PairWrapper<Literal<_alias>, Nothing, Nothing>{} || ... ||
-       PairWrapper<Literal<_alias>, TableTypes, AliasTypes>{});
+      (PairWrapper<Literal<_table_or_alias>, Nothing, Nothing, _is_table>{} ||
+       ... ||
+       PairWrapper<Literal<_table_or_alias>, TableTypes, AliasOrTableTypes,
+                   _is_table>{});
 
   using TableType = std::remove_cvref_t<typename decltype(wrapper)::TableType>;
 
@@ -47,39 +87,43 @@ struct GetTableType<Literal<_alias>,
                 "Alias could not be identified.");
 };
 
-template <class T>
-struct GetTableType<Literal<"">, TableWrapper<T>> {
+template <rfl::internal::StringLiteral _table_or_alias, class T, bool _is_table>
+struct GetTableType<Literal<_table_or_alias>, TableWrapper<T>, _is_table> {
   using TableType = T;
 };
 
-template <class T>
-struct GetTableType<Literal<"">, T> {
+template <rfl::internal::StringLiteral _table_or_alias, class T, bool _is_table>
+struct GetTableType<Literal<_table_or_alias>, T, _is_table> {
   using TableType = T;
 };
 
-template <size_t _i, class... TableTypes, class... AliasTypes>
+template <size_t _i, class... TableTypes, class... AliasOrTableTypes,
+          bool _is_table>
 struct GetTableType<std::integral_constant<size_t, _i>,
-                    rfl::Tuple<std::pair<TableTypes, AliasTypes>...>> {
+                    rfl::Tuple<std::pair<TableTypes, AliasOrTableTypes>...>,
+                    _is_table> {
   using TableType = typename rfl::tuple_element_t<
-      _i, rfl::Tuple<std::pair<TableTypes, AliasTypes>...>>::first_type;
+      _i, rfl::Tuple<std::pair<TableTypes, AliasOrTableTypes>...>>::first_type;
 
   static_assert(!std::is_same_v<TableType, Nothing>,
                 "Alias could not be identified.");
 };
 
-template <size_t _i, class T>
-struct GetTableType<std::integral_constant<size_t, _i>, TableWrapper<T>> {
+template <size_t _i, class T, bool _is_table>
+struct GetTableType<std::integral_constant<size_t, _i>, TableWrapper<T>,
+                    _is_table> {
   using TableType = T;
 };
 
-template <size_t _i, class T>
-struct GetTableType<std::integral_constant<size_t, _i>, T> {
+template <size_t _i, class T, bool _is_table>
+struct GetTableType<std::integral_constant<size_t, _i>, T, _is_table> {
   using TableType = T;
 };
 
-template <class Alias, class T>
-using get_table_t = typename GetTableType<std::remove_cvref_t<Alias>,
-                                          std::remove_cvref_t<T>>::TableType;
+template <class AliasOrTable, class T, bool _is_table>
+using get_table_t =
+    typename GetTableType<std::remove_cvref_t<AliasOrTable>,
+                          std::remove_cvref_t<T>, _is_table>::TableType;
 
 }  // namespace sqlgen::transpilation
 

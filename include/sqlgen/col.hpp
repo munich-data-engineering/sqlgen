@@ -5,6 +5,7 @@
 #include <rfl.hpp>
 #include <string>
 
+#include "./internal/get_member_ptr_name.hpp"
 #include "transpilation/As.hpp"
 #include "transpilation/Col.hpp"
 #include "transpilation/Condition.hpp"
@@ -12,29 +13,30 @@
 #include "transpilation/Operation.hpp"
 #include "transpilation/Operator.hpp"
 #include "transpilation/Set.hpp"
-#include "transpilation/Value.hpp"
 #include "transpilation/conditions.hpp"
+#include "transpilation/get_tablename.hpp"
 #include "transpilation/is_duration.hpp"
-#include "transpilation/to_transpilation_type.hpp"
 
 namespace sqlgen {
 
 template <rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias = "">
+          rfl::internal::StringLiteral _alias_or_table, bool _is_table>
 struct Col {
-  using ColType = transpilation::Col<_name, _alias>;
+  using ColType = transpilation::Col<_name, _alias_or_table, _is_table>;
   using Name = rfl::Literal<_name>;
-  using Alias = rfl::Literal<_alias>;
+  using AliasOrTable = rfl::Literal<_alias_or_table>;
 
   template <rfl::internal::StringLiteral _new_name>
   auto as() const noexcept {
-    return transpilation::As<transpilation::Col<_name, _alias>, _new_name>{
-        .val = transpilation::Col<_name, _alias>{}};
+    return transpilation::As<
+        transpilation::Col<_name, _alias_or_table, _is_table>, _new_name>{
+        .val = transpilation::Col<_name, _alias_or_table, _is_table>{}};
   }
 
   /// Signals to order_by that this column is to be sorted in descending order.
   auto desc() const noexcept {
-    return transpilation::Desc<transpilation::Col<_name, _alias>>{};
+    return transpilation::Desc<
+        transpilation::Col<_name, _alias_or_table, _is_table>>{};
   }
 
   /// Returns the column name.
@@ -44,80 +46,87 @@ struct Col {
   template <class... Ts>
   auto in(const Ts&... _ts) const noexcept {
     return transpilation::make_condition(transpilation::conditions::in(
-        transpilation::Col<_name, _alias>{}, _ts...));
+        transpilation::Col<_name, _alias_or_table, _is_table>{}, _ts...));
   }
 
   /// Returns an IS NULL condition.
   auto is_null() const noexcept {
     return transpilation::make_condition(transpilation::conditions::is_null(
-        transpilation::Col<_name, _alias>{}));
+        transpilation::Col<_name, _alias_or_table, _is_table>{}));
   }
 
   /// Returns a IS NOT NULL condition.
   auto is_not_null() const noexcept {
     return transpilation::make_condition(transpilation::conditions::is_not_null(
-        transpilation::Col<_name, _alias>{}));
+        transpilation::Col<_name, _alias_or_table, _is_table>{}));
   }
 
   /// Returns a LIKE condition.
   auto like(const std::string& _pattern) const noexcept {
     return transpilation::make_condition(transpilation::conditions::like(
-        transpilation::Col<_name, _alias>{}, _pattern));
+        transpilation::Col<_name, _alias_or_table, _is_table>{}, _pattern));
   }
 
   /// Returns a NOT LIKE condition.
   auto not_like(const std::string& _pattern) const noexcept {
     return transpilation::make_condition(transpilation::conditions::not_like(
-        transpilation::Col<_name, _alias>{}, _pattern));
+        transpilation::Col<_name, _alias_or_table, _is_table>{}, _pattern));
   }
 
   /// Returns a NOT IN condition.
   template <class... Ts>
   auto not_in(const Ts&... _ts) const noexcept {
     return transpilation::make_condition(transpilation::conditions::not_in(
-        transpilation::Col<_name, _alias>{}, _ts...));
+        transpilation::Col<_name, _alias_or_table, _is_table>{}, _ts...));
   }
 
   /// Returns a SET clause in an UPDATE statement.
   template <class T>
   auto set(const T& _to) const noexcept {
-    return transpilation::Set<transpilation::Col<_name, _alias>,
-                              std::remove_cvref_t<T>>{.to = _to};
+    return transpilation::Set<
+        transpilation::Col<_name, _alias_or_table, _is_table>,
+        std::remove_cvref_t<T>>{.to = _to};
   }
 
   /// Returns a SET clause in an UPDATE statement.
   template <rfl::internal::StringLiteral _other_name,
-            rfl::internal::StringLiteral _other_alias>
-  auto set(const Col<_other_name, _other_alias>& _to) const noexcept {
-    return transpilation::Set<transpilation::Col<_name, _alias>,
-                              transpilation::Col<_other_name, _other_alias>>{
-        .to = transpilation::Col<_other_name, _other_alias>{}};
+            rfl::internal::StringLiteral _other_alias_or_table,
+            bool _other_is_table>
+  auto set(const Col<_other_name, _other_alias_or_table, _other_is_table>& _to)
+      const noexcept {
+    return transpilation::Set<
+        transpilation::Col<_name, _alias_or_table, _is_table>,
+        transpilation::Col<_other_name, _other_alias_or_table,
+                           _other_is_table>>{
+        .to = transpilation::Col<_other_name, _other_alias_or_table,
+                                 _other_is_table>{}};
   }
 
   /// Returns a SET clause in an UPDATE statement.
   auto set(const char* _to) const noexcept {
-    return transpilation::Set<transpilation::Col<_name, _alias>, std::string>{
+    return transpilation::Set<
+        transpilation::Col<_name, _alias_or_table, _is_table>, std::string>{
         .to = _to};
   }
 
   template <class T>
   friend auto operator==(const Col&, const T& _t) {
     return transpilation::make_condition(transpilation::conditions::equal(
-        transpilation::Col<_name, _alias>{},
+        transpilation::Col<_name, _alias_or_table, _is_table>{},
         transpilation::to_transpilation_type(_t)));
   }
 
   template <class T>
   friend auto operator!=(const Col&, const T& _t) {
     return transpilation::make_condition(transpilation::conditions::not_equal(
-        transpilation::Col<_name, _alias>{},
+        transpilation::Col<_name, _alias_or_table, _is_table>{},
         transpilation::to_transpilation_type(_t)));
   }
 
   template <class T>
   friend auto operator<(const Col&, const T& _t) {
     return transpilation::make_condition(transpilation::conditions::lesser_than(
-        transpilation::Col<_name, _alias>{},
+        transpilation::Col<_name, _alias_or_table, _is_table>{},
         transpilation::to_transpilation_type(_t)));
   }
 
@@ -125,7 +134,7 @@ struct Col {
   friend auto operator<=(const Col&, const T& _t) {
     return transpilation::make_condition(
         transpilation::conditions::lesser_equal(
-            transpilation::Col<_name, _alias>{},
+            transpilation::Col<_name, _alias_or_table, _is_table>{},
             transpilation::to_transpilation_type(_t)));
   }
 
@@ -133,7 +142,7 @@ struct Col {
   friend auto operator>(const Col&, const T& _t) {
     return transpilation::make_condition(
         transpilation::conditions::greater_than(
-            transpilation::Col<_name, _alias>{},
+            transpilation::Col<_name, _alias_or_table, _is_table>{},
             transpilation::to_transpilation_type(_t)));
   }
 
@@ -141,7 +150,7 @@ struct Col {
   friend auto operator>=(const Col&, const T& _t) {
     return transpilation::make_condition(
         transpilation::conditions::greater_equal(
-            transpilation::Col<_name, _alias>{},
+            transpilation::Col<_name, _alias_or_table, _is_table>{},
             transpilation::to_transpilation_type(_t)));
   }
 
@@ -150,10 +159,10 @@ struct Col {
     using OtherType = typename transpilation::ToTranspilationType<
         std::remove_cvref_t<T>>::Type;
 
-    return transpilation::Operation<transpilation::Operator::divides,
-                                    transpilation::Col<_name, _alias>,
-                                    OtherType>{
-        .operand1 = transpilation::Col<_name, _alias>{},
+    return transpilation::Operation<
+        transpilation::Operator::divides,
+        transpilation::Col<_name, _alias_or_table, _is_table>, OtherType>{
+        .operand1 = transpilation::Col<_name, _alias_or_table, _is_table>{},
         .operand2 = transpilation::to_transpilation_type(_op2)};
   }
 
@@ -167,10 +176,10 @@ struct Col {
       using OtherType = typename transpilation::ToTranspilationType<
           std::remove_cvref_t<T>>::Type;
 
-      return transpilation::Operation<transpilation::Operator::minus,
-                                      transpilation::Col<_name, _alias>,
-                                      OtherType>{
-          .operand1 = transpilation::Col<_name, _alias>{},
+      return transpilation::Operation<
+          transpilation::Operator::minus,
+          transpilation::Col<_name, _alias_or_table, _is_table>, OtherType>{
+          .operand1 = transpilation::Col<_name, _alias_or_table, _is_table>{},
           .operand2 = transpilation::to_transpilation_type(_op2)};
     }
   }
@@ -180,10 +189,10 @@ struct Col {
     using OtherType = typename transpilation::ToTranspilationType<
         std::remove_cvref_t<T>>::Type;
 
-    return transpilation::Operation<transpilation::Operator::mod,
-                                    transpilation::Col<_name, _alias>,
-                                    OtherType>{
-        .operand1 = transpilation::Col<_name, _alias>{},
+    return transpilation::Operation<
+        transpilation::Operator::mod,
+        transpilation::Col<_name, _alias_or_table, _is_table>, OtherType>{
+        .operand1 = transpilation::Col<_name, _alias_or_table, _is_table>{},
         .operand2 = transpilation::to_transpilation_type(_op2)};
   }
 
@@ -192,10 +201,10 @@ struct Col {
     using OtherType = typename transpilation::ToTranspilationType<
         std::remove_cvref_t<T>>::Type;
 
-    return transpilation::Operation<transpilation::Operator::multiplies,
-                                    transpilation::Col<_name, _alias>,
-                                    OtherType>{
-        .operand1 = transpilation::Col<_name, _alias>{},
+    return transpilation::Operation<
+        transpilation::Operator::multiplies,
+        transpilation::Col<_name, _alias_or_table, _is_table>, OtherType>{
+        .operand1 = transpilation::Col<_name, _alias_or_table, _is_table>{},
         .operand2 = transpilation::to_transpilation_type(_op2)};
   }
 
@@ -205,39 +214,68 @@ struct Col {
       using DurationType = std::remove_cvref_t<T>;
       return transpilation::Operation<
           transpilation::Operator::date_plus_duration,
-          transpilation::Col<_name, _alias>, rfl::Tuple<DurationType>>{
-          .operand1 = transpilation::Col<_name, _alias>{},
+          transpilation::Col<_name, _alias_or_table, _is_table>,
+          rfl::Tuple<DurationType>>{
+          .operand1 = transpilation::Col<_name, _alias_or_table, _is_table>{},
           .operand2 = rfl::Tuple<DurationType>(_op2)};
 
     } else {
       using OtherType = typename transpilation::ToTranspilationType<
           std::remove_cvref_t<T>>::Type;
 
-      return transpilation::Operation<transpilation::Operator::plus,
-                                      transpilation::Col<_name, _alias>,
-                                      OtherType>{
-          .operand1 = transpilation::Col<_name, _alias>{},
+      return transpilation::Operation<
+          transpilation::Operator::plus,
+          transpilation::Col<_name, _alias_or_table, _is_table>, OtherType>{
+          .operand1 = transpilation::Col<_name, _alias_or_table, _is_table>{},
           .operand2 = transpilation::to_transpilation_type(_op2)};
     }
   }
 };
 
-template <rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias = "">
-const auto col = Col<_name, _alias>{};
-
 namespace transpilation {
 
 template <rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias>
-struct ToTranspilationType<sqlgen::Col<_name, _alias>> {
-  using Type = transpilation::Col<_name, _alias>;
+          rfl::internal::StringLiteral _alias_or_table, bool _is_table>
+struct ToTranspilationType<sqlgen::Col<_name, _alias_or_table, _is_table>> {
+  using Type = transpilation::Col<_name, _alias_or_table, _is_table>;
 
   Type operator()(const auto&) const noexcept {
-    return transpilation::Col<_name, _alias>{};
+    return transpilation::Col<_name, _alias_or_table, _is_table>{};
   }
 };
+
 }  // namespace transpilation
+
+namespace internal {
+
+template <auto _name, rfl::internal::StringLiteral _alias_or_table>
+struct ColHelper;
+
+template <auto _name, rfl::internal::StringLiteral _alias>
+struct ColHelper {
+  using Type = sqlgen::Col<_name, _alias, false>;
+};
+
+template <class StructType, class PtrType, PtrType StructType::*_ptr,
+          rfl::internal::StringLiteral _alias_or_table>
+struct ColHelper<_ptr, _alias_or_table> {
+  using Type = std::conditional_t<
+      _alias_or_table.string_view() == "",
+      sqlgen::Col<internal::get_member_ptr_name<_ptr>(),
+                  transpilation::get_tablename_str_lit<
+                      internal::struct_type_t<decltype(_ptr)>>(),
+                  true>,
+      sqlgen::Col<internal::get_member_ptr_name<_ptr>(), _alias_or_table,
+                  false>>;
+};
+
+template <auto _name, rfl::internal::StringLiteral _alias_or_table>
+using col_t = typename ColHelper<_name, _alias_or_table>::Type;
+
+}  // namespace internal
+
+template <auto _name, rfl::internal::StringLiteral _alias_or_table = "">
+const auto col = internal::col_t<_name, _alias_or_table>{};
 
 }  // namespace sqlgen
 

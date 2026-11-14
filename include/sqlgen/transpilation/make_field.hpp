@@ -24,7 +24,7 @@
 #include "is_timestamp.hpp"
 #include "remove_as_t.hpp"
 #include "remove_nullable_t.hpp"
-#include "to_alias.hpp"
+#include "to_alias_or_table.hpp"
 #include "to_duration.hpp"
 #include "to_value.hpp"
 #include "underlying_t.hpp"
@@ -50,25 +50,28 @@ struct MakeField {
 };
 
 template <class TableTupleType, rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias>
-struct MakeField<TableTupleType, Col<_name, _alias>> {
-  static_assert(all_columns_exist<TableTupleType, Col<_name, _alias>>(),
-                "A required column does not exist.");
+          rfl::internal::StringLiteral _alias, bool _is_table>
+struct MakeField<TableTupleType, Col<_name, _alias, _is_table>> {
+  static_assert(
+      all_columns_exist<TableTupleType, Col<_name, _alias, _is_table>>(),
+      "A required column does not exist.");
 
   static constexpr bool is_aggregation = false;
   static constexpr bool is_column = true;
   static constexpr bool is_operation = false;
 
   using TableType =
-      get_table_t<typename Col<_name, _alias>::Alias, TableTupleType>;
+      get_table_t<typename Col<_name, _alias, _is_table>::AliasOrTable,
+                  TableTupleType, _is_table>;
 
   using Name = Literal<_name>;
   using Type = rfl::field_type_t<_name, TableType>;
 
   dynamic::SelectFrom::Field operator()(const auto&) const {
     return dynamic::SelectFrom::Field{dynamic::Operation{
-        .val = dynamic::Column{.alias = to_alias<Literal<_alias>>(),
-                               .name = _name.str()}}};
+        .val = dynamic::Column{
+            .alias_or_table = to_alias_or_table<Literal<_alias>, _is_table>(),
+            .name = _name.str()}}};
   }
 };
 
@@ -173,12 +176,13 @@ struct MakeField<TableTupleType, Aggregation<_agg, ValueType>> {
 };
 
 template <class TableTupleType, rfl::internal::StringLiteral _name,
-          rfl::internal::StringLiteral _alias>
-struct MakeField<TableTupleType,
-                 Aggregation<AggregationOp::count, Col<_name, _alias>>> {
-  static_assert(all_columns_exist<TableTupleType, Col<_name, _alias>>(),
-                "A column required in the COUNT or COUNT_DISTINCT aggregation "
-                "does not exist.");
+          rfl::internal::StringLiteral _alias, bool _is_table>
+struct MakeField<TableTupleType, Aggregation<AggregationOp::count,
+                                             Col<_name, _alias, _is_table>>> {
+  static_assert(
+      all_columns_exist<TableTupleType, Col<_name, _alias, _is_table>>(),
+      "A column required in the COUNT or COUNT_DISTINCT aggregation "
+      "does not exist.");
 
   static constexpr bool is_aggregation = true;
   static constexpr bool is_column = true;
@@ -190,8 +194,11 @@ struct MakeField<TableTupleType,
   dynamic::SelectFrom::Field operator()(const auto& _agg) const {
     return dynamic::SelectFrom::Field{dynamic::Operation{
         .val = dynamic::Aggregation{dynamic::Aggregation::Count{
-            .val = dynamic::Column{.alias = to_alias<Literal<_alias>>(),
-                                   .name = _name.str()},
+            .val =
+                dynamic::Column{
+                    .alias_or_table =
+                        to_alias_or_table<Literal<_alias>, _is_table>(),
+                    .name = _name.str()},
             .distinct = _agg.distinct}}}};
   }
 };

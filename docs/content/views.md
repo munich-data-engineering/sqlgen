@@ -194,6 +194,30 @@ const auto result = drop<EmployeeView>(conn);
 const auto result = (drop<EmployeeView> | if_exists)(conn);
 ```
 
+## Using member pointers
+
+The `select_from` columns in the view examples above can instead reference the
+struct fields with member pointers through the `col` template. For instance, the
+filtered view and joined view examples become:
+
+```cpp
+const auto high_salary_query = select_from<Employee>(
+                                   col<&Employee::first_name>,
+                                   col<&Employee::last_name>,
+                                   col<&Employee::salary>) |
+                               where(col<&Employee::salary> > 50000);
+```
+
+```cpp
+const auto joined_query = select_from<Employee, "t1">(
+    col<&Employee::first_name, "t1"> | as<"first_name">,
+    col<&Employee::last_name, "t1"> | as<"last_name">,
+    col<&Department::name, "t2"> | as<"department_name">,
+    col<&Department::location, "t2"> | as<"location">
+) |
+inner_join<Department, "t2">(col<&Employee::department_id, "t1"> == col<&Department::id, "t2">);
+```
+
 ## Database-Specific Behavior
 
 ### MySQL and PostgreSQL

@@ -3,18 +3,21 @@
 
 #include <optional>
 #include <rfl.hpp>
+#include <rfl/internal/StringLiteral.hpp>
 #include <type_traits>
 
+#include "get_tablename.hpp"
 #include "is_nullable.hpp"
 
 namespace sqlgen::transpilation {
 
-template <class T>
+template <class T, class U>
 struct WrapInOptional;
 
-template <class... FieldTypes>
-struct WrapInOptional<rfl::NamedTuple<FieldTypes...>> {
-  using Type = rfl::NamedTuple<rfl::Field<
+template <class T, class... FieldTypes>
+struct WrapInOptional<T, rfl::NamedTuple<FieldTypes...>> {
+  static constexpr std::string_view tablename = get_tablename_str_view<T>();
+  using NamedTupleType = rfl::NamedTuple<rfl::Field<
       FieldTypes::name_,
       std::conditional_t<is_nullable_v<typename FieldTypes::Type>,
                          typename FieldTypes::Type,
@@ -22,7 +25,7 @@ struct WrapInOptional<rfl::NamedTuple<FieldTypes...>> {
 };
 
 template <class T>
-using wrap_in_optional_t = typename WrapInOptional<rfl::named_tuple_t<T>>::Type;
+using wrap_in_optional_t = WrapInOptional<T, rfl::named_tuple_t<T>>;
 
 }  // namespace sqlgen::transpilation
 

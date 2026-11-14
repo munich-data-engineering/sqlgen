@@ -12,6 +12,14 @@ coalesce("last_name"_c, "none") | as<"last_name_or_none">
 coalesce(upper("last_name"_c), "none") | as<"last_name_or_none">
 ```
 
+Each of these column literals can instead be a member pointer to the struct
+field through the `col` template, e.g. `col<&Person::last_name>`:
+
+```cpp
+coalesce(col<&Person::last_name>, "none") | as<"last_name_or_none">
+coalesce(upper(col<&Person::last_name>), "none") | as<"last_name_or_none">
+```
+
 ---
 
 ## Nullable Values
