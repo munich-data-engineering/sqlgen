@@ -96,8 +96,10 @@ typename Connection::ConnPtr Connection::make_conn(const std::string& _fname) {
   sqlite3* conn = nullptr;
   const auto err = sqlite3_open(_fname.c_str(), &conn);
   if (err) {
-    throw std::runtime_error("Can't open database: " +
-                             std::string(sqlite3_errmsg(conn)));
+    const std::string msg =
+        "Can't open database: " + std::string(sqlite3_errmsg(conn));
+    sqlite3_close(conn);
+    throw std::runtime_error(msg);
   }
   return ConnPtr::make(std::shared_ptr<sqlite3>(conn, &sqlite3_close)).value();
 }
