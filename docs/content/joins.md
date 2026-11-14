@@ -170,6 +170,8 @@ This produces a query with both an inner and a left join, grouping and ordering
 the results. The join conditions, `group_by`, and `order_by` all reference their
 columns the same way.
 
+> **Note:** Member pointers provide no additional type safety over the `_tN` suffixes or the `col<"col", "alias">` syntax, since both are checked against the struct at compile time. Their only practical advantage is somewhat clearer error messages, so which one you use is a matter of personal preference.
+
 ## Advanced: Nested and Grouped Joins
 
 You can nest joins and combine them with grouping and aggregation:

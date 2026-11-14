@@ -103,6 +103,8 @@ FROM "Person" t1
 INNER JOIN "Person" t3 ON t1."id" = t3."id"
 ```
 
+> **Note:** Member pointers provide no additional type safety over the `_c`/`_tN` literals, since both are checked against the struct at compile time. Their only practical advantage is somewhat clearer error messages, so which one you use is a matter of personal preference.
+
 For a full rundown of the operations supported on columns, see
 [`sqlgen::col`](col.md).
 
