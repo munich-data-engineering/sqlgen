@@ -35,8 +35,9 @@ TEST(postgres, test_like) {
   using namespace sqlgen;
   using namespace sqlgen::literals;
 
-  const auto conn =
-      postgres::connect(credentials).and_then(write(std::ref(people1)));
+  const auto conn = postgres::connect(credentials)
+                        .and_then(drop<Person> | if_exists)
+                        .and_then(write(std::ref(people1)));
 
   const auto people2 =
       conn.and_then(sqlgen::read<std::vector<Person>> |

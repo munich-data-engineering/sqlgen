@@ -8,6 +8,7 @@
 #include <sqlgen.hpp>
 #include <sqlgen/postgres.hpp>
 #include <vector>
+
 #include "test_helpers.hpp"
 
 namespace test_left_join {
