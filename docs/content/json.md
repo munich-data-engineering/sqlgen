@@ -75,6 +75,10 @@ You can store any `T` that reflectcpp can serialize, such as:
 
 Use the regular `sqlgen::write` and `sqlgen::read` APIs. JSON values are transparently serialized/deserialized.
 
+{{< callout type="info" >}}
+The example below uses the optional `sqlgen::postgres` backend, which is disabled by default. Enable it by configuring CMake with `-DSQLGEN_POSTGRES=ON` before building.
+{{< /callout >}}
+
 ```cpp
 using namespace sqlgen;
 using namespace sqlgen::literals;

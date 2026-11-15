@@ -2,6 +2,10 @@
 
 The `to_sql` functions in each dialect namespace (e.g., `sqlgen::postgres::to_sql`, `sqlgen::sqlite::to_sql`) provide a way to transpile C++ SQL operations into dialect-specific SQL strings. This is particularly useful for testing, debugging, logging, and understanding the exact SQL that will be executed by sqlgen.
 
+{{< callout type="info" >}}
+The examples below use the optional `sqlgen::postgres` backend, which is disabled by default. Enable it by configuring CMake with `-DSQLGEN_POSTGRES=ON` before building.
+{{< /callout >}}
+
 ## Usage
 
 ### Basic Usage

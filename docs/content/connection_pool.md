@@ -2,6 +2,10 @@
 
 sqlgen provides a thread-safe connection pool implementation that efficiently manages database connections. The pool automatically handles connection lifecycle, ensures thread safety, and provides RAII-based session management.
 
+{{< callout type="info" >}}
+The examples below use the optional `sqlgen::postgres` backend, which is disabled by default. Enable it by configuring CMake with `-DSQLGEN_POSTGRES=ON` before building.
+{{< /callout >}}
+
 ## Configuration
 
 The connection pool can be configured using `ConnectionPoolConfig`:
