@@ -1,8 +1,8 @@
-name: windows-cxx20-vcpkg 
+name: windows-cxx20-vcpkg
 
 on: [push, pull_request]
 
-env: 
+env:
     VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
@@ -11,10 +11,10 @@ jobs:
       fail-fast: false
       matrix:
         include:
-          - db: duckdb 
+          - db: duckdb
           - db: postgres
           - db: sqlite
-          - db: mysql 
+          - db: mysql
     name: "(windows-${{ matrix.db }})"
     concurrency:
       group: ci-${{ github.ref }}-windows-${{ matrix.db }}
@@ -35,25 +35,25 @@ jobs:
       - uses: ilammy/msvc-dev-cmd@v1
       - uses: lukka/run-vcpkg@v11
       - name: Compile
-        if: matrix.db == 'duckdb' 
+        if: matrix.db == 'duckdb'
         run: |
-          cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_DUCKDB=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_SQLITE3=OFF 
-          cmake --build build --config Release -j4 
+          cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_DUCKDB=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_SQLITE3=OFF
+          cmake --build build --config Release -j4
       - name: Compile
-        if: matrix.db == 'postgres' 
+        if: matrix.db == 'postgres'
         run: |
-          cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_SQLITE3=OFF -DSQLGEN_BUILD_DRY_TESTS_ONLY=ON -DBUILD_SHARED_LIBS=ON -DVCPKG_TARGET_TRIPLET=x64-windows-release
-          cmake --build build --config Release -j4 
+          cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_SQLITE3=OFF -DSQLGEN_POSTGRES=ON -DSQLGEN_BUILD_DRY_TESTS_ONLY=ON -DBUILD_SHARED_LIBS=ON -DVCPKG_TARGET_TRIPLET=x64-windows-release
+          cmake --build build --config Release -j4
       - name: Compile
-        if: matrix.db == 'sqlite' 
+        if: matrix.db == 'sqlite'
         run: |
           cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_POSTGRES=OFF -DBUILD_SHARED_LIBS=ON -DVCPKG_TARGET_TRIPLET=x64-windows-release
-          cmake --build build --config Release -j4 
+          cmake --build build --config Release -j4
       - name: Compile
-        if: matrix.db == 'mysql' 
+        if: matrix.db == 'mysql'
         run: |
           cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_MYSQL=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_SQLITE3=OFF -DSQLGEN_BUILD_DRY_TESTS_ONLY=ON -DBUILD_SHARED_LIBS=ON -DVCPKG_TARGET_TRIPLET=x64-windows-release
-          cmake --build build --config Release -j4 
+          cmake --build build --config Release -j4
       - name: Run tests
         run: |
           ctest --test-dir build --output-on-failure

@@ -3,7 +3,7 @@ name: macos-cxx20-vcpkg
 on: [push, pull_request]
 
 
-env: 
+env:
     VCPKG_BINARY_SOURCES: "clear;x-gha,readwrite"
 
 jobs:
@@ -17,7 +17,7 @@ jobs:
           - os: "macos-latest"
             db: sqlite
           - os: "macos-latest"
-            db: mysql 
+            db: mysql
           - os: "macos-latest"
             db: duckdb
     name: "${{ github.job }} (${{ matrix.os }}-${{ matrix.db }})"
@@ -45,11 +45,11 @@ jobs:
           create-symlink: true
       - name: Run vcpkg
         uses: lukka/run-vcpkg@v11
-      - name: Install ninja 
+      - name: Install ninja
         run: brew install ninja autoconf bison flex pkg-config icu4c
         if: matrix.os == 'macos-latest'
       - name: Compile
-        if: matrix.db == 'duckdb' 
+        if: matrix.db == 'duckdb'
         env:
           CC: clang
           CXX: clang++
@@ -59,10 +59,10 @@ jobs:
             export CMAKE_GENERATOR=Ninja
           fi
           $CXX --version
-          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_DUCKDB=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_SQLITE3=OFF 
+          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_DUCKDB=ON -DSQLGEN_POSTGRES=OFF -DSQLGEN_SQLITE3=OFF
           cmake --build build -j 4
       - name: Compile
-        if: matrix.db == 'postgres' 
+        if: matrix.db == 'postgres'
         env:
           CC: clang
           CXX: clang++
@@ -73,10 +73,10 @@ jobs:
             export MACOSX_DEPLOYMENT_TARGET="$(sw_vers -productVersion)"
           fi
           $CXX --version
-          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_SQLITE3=OFF -DSQLGEN_BUILD_DRY_TESTS_ONLY=ON 
+          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_POSTGRES=ON -DSQLGEN_SQLITE3=OFF -DSQLGEN_BUILD_DRY_TESTS_ONLY=ON
           cmake --build build -j 4
       - name: Compile
-        if: matrix.db == 'sqlite' 
+        if: matrix.db == 'sqlite'
         env:
           CC: clang
           CXX: clang++
@@ -89,7 +89,7 @@ jobs:
           cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_POSTGRES=OFF
           cmake --build build -j 4
       - name: Compile
-        if: matrix.db == 'mysql' 
+        if: matrix.db == 'mysql'
         env:
           CC: clang
           CXX: clang++
