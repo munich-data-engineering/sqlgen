@@ -2,6 +2,10 @@
 
 The `sqlgen::postgres` module provides a type-safe and efficient interface for interacting with PostgreSQL databases. It implements the core database operations through a connection-based API with support for prepared statements, transactions, and efficient data iteration.
 
+{{< callout type="info" >}}
+The `sqlgen::postgres` backend is optional and disabled by default. Enable it by configuring CMake with `-DSQLGEN_POSTGRES=ON` before building.
+{{< /callout >}}
+
 ## Basic Usage
 
 This section describes the key aspects needed in order to use the module.

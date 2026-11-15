@@ -11,20 +11,14 @@ using either [vcpkg](https://vcpkg.io/en/package/sqlgen) or [Conan](https://cona
 
 Alternatively, you can build sqlgen from source using vcpkg:
 
-1. Make sure you have the required dependencies installed (skip this step on Windows):
-```bash
-sudo apt-get install autoconf bison flex # Linux (Ubuntu, Debian, ...)
-brew install autoconf bison flex # macOS
-```
-
-2. Set up vcpkg:
+1. Set up vcpkg:
 ```bash
 git submodule update --init
 ./vcpkg/bootstrap-vcpkg.sh  # Linux, macOS
 ./vcpkg/bootstrap-vcpkg.bat # Windows
 ```
 
-3. Build the library:
+2. Build the library:
 ```bash
 cmake -S . -B build -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release
 cmake --build build -j 4  # gcc, clang
@@ -37,9 +31,19 @@ Run `./vcpkg/vcpkg help triplets` to view all supported triplets.
 Common triplets for shared libraries are `x64-linux-dynamic`,
 `arm64-osx-dynamic` or `x64-osx-dynamic`.
 
-Add `-DSQLGEN_MYSQL=ON` to support MySQL/MariaDB. Add `-DSQLGEN_DUCKDB=ON` to support DuckDB.
+Add `-DSQLGEN_POSTGRES=ON` to the first line to support PostgreSQL. Add `-DSQLGEN_MYSQL=ON` to support MySQL/MariaDB. Add `-DSQLGEN_DUCKDB=ON` to support DuckDB.
 
-4. Include in your CMake project:
+On Linux and macOS, you may need to install additional dependencies to get Postgres to compile:
+
+```bash
+sudo apt-get install autoconf bison flex # Linux (Ubuntu, Debian, ...)
+brew install autoconf bison flex # macOS
+```
+
+If you want to build the tests, add `-DSQLGEN_BUILD_TESTS=ON`.
+If you want to build 'dry' tests only (those that do not require a database connection), add `-DSQLGEN_BUILD_DRY_TESTS_ONLY=ON`.
+
+3. Include in your CMake project:
 ```cmake
 find_package(sqlgen REQUIRED)
 target_link_libraries(your_target PRIVATE sqlgen::sqlgen)

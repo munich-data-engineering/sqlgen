@@ -213,6 +213,10 @@ const auto result = postgres::connect(credentials)
     .value();
 ```
 
+{{< callout type="info" >}}
+The example above uses the optional `sqlgen::postgres` backend, which is disabled by default. Enable it by configuring CMake with `-DSQLGEN_POSTGRES=ON` before building.
+{{< /callout >}}
+
 This generates the following SQL:
 
 ```sql

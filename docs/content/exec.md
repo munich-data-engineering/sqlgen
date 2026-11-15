@@ -2,6 +2,10 @@
 
 The `sqlgen::exec` interface provides a way to execute raw SQL statements on a database connection. It's useful when you need to perform database operations that aren't covered by the type-safe interfaces, such as setting database-specific parameters or executing custom SQL statements.
 
+{{< callout type="info" >}}
+The examples below use the optional `sqlgen::postgres` backend, which is disabled by default. Enable it by configuring CMake with `-DSQLGEN_POSTGRES=ON` before building.
+{{< /callout >}}
+
 ## Usage
 
 ### Basic Execution

@@ -2,6 +2,10 @@
 
 The `sqlgen::duckdb` module provides a type-safe and efficient interface for interacting with DuckDB databases. It implements the core database operations through a connection-based API with support for prepared statements, transactions, and efficient data iteration.
 
+{{< callout type="info" >}}
+The `sqlgen::duckdb` backend is optional and disabled by default. Enable it by configuring CMake with `-DSQLGEN_DUCKDB=ON` before building.
+{{< /callout >}}
+
 ## Usage
 
 ### Basic Connection
