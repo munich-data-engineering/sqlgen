@@ -4,11 +4,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 option(SQLGEN_BUILD_SHARED "Build shared library" ${BUILD_SHARED_LIBS})
 
-option(SQLGEN_DUCKDB "Enable DuckDB support" OFF) 
+option(SQLGEN_DUCKDB "Enable DuckDB support" OFF)
 
-option(SQLGEN_MYSQL "Enable MySQL support" OFF) 
+option(SQLGEN_MYSQL "Enable MySQL support" OFF)
 
-option(SQLGEN_POSTGRES "Enable PostgreSQL support" ON) # enabled by default
+option(SQLGEN_POSTGRES "Enable PostgreSQL support" OFF)
 
 option(SQLGEN_SQLITE3 "Enable SQLite3 support" ON) # enabled by default
 
@@ -31,19 +31,19 @@ if (SQLGEN_USE_VCPKG)
     if (SQLGEN_BUILD_TESTS)
         list(APPEND VCPKG_MANIFEST_FEATURES "tests")
     endif()
-    
+
     if (SQLGEN_DUCKDB OR SQLGEN_CHECK_HEADERS)
         list(APPEND VCPKG_MANIFEST_FEATURES "duckdb")
     endif()
-    
+
     if (SQLGEN_MYSQL OR SQLGEN_CHECK_HEADERS)
         list(APPEND VCPKG_MANIFEST_FEATURES "mysql")
     endif()
-    
+
     if (SQLGEN_POSTGRES OR SQLGEN_CHECK_HEADERS)
         list(APPEND VCPKG_MANIFEST_FEATURES "postgres")
     endif()
-    
+
     if (SQLGEN_SQLITE3 OR SQLGEN_CHECK_HEADERS)
         list(APPEND VCPKG_MANIFEST_FEATURES "sqlite3")
     endif()
@@ -63,7 +63,7 @@ endif()
 add_library(sqlgen::sqlgen ALIAS sqlgen)
 
 if (MSVC)
-    target_compile_options(sqlgen PRIVATE 
+    target_compile_options(sqlgen PRIVATE
         $<$<CONFIG:Debug>:
             -Wall
         >
@@ -177,7 +177,7 @@ if(SQLGEN_CHECK_HEADERS)
         )
 
         add_library(check_header_${HEADER_NAME} "${TEST_SOURCE_FILE}")
-        
+
         target_include_directories(check_header_${HEADER_NAME} PRIVATE
             ${CMAKE_CURRENT_SOURCE_DIR}
             ${ADDITIONAL_INCLUDE_DIRS}
@@ -186,7 +186,7 @@ if(SQLGEN_CHECK_HEADERS)
         target_link_libraries(check_header_${HEADER_NAME} PUBLIC unofficial::libmariadb)
         target_link_libraries(check_header_${HEADER_NAME} PUBLIC PostgreSQL::PostgreSQL)
         target_link_libraries(check_header_${HEADER_NAME} PUBLIC unofficial::sqlite3::sqlite3)
-        
+
         add_custom_target(check_${HEADER_NAME} ALL DEPENDS check_header_${HEADER_NAME})
     endforeach()
 endif()
