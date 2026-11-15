@@ -20,7 +20,8 @@ class SQLGEN_API PostgresV2Connection {
 
   PostgresV2Connection(PGconn* _ptr)
       : ptr_(Ref<PGconn>::make(std::shared_ptr<PGconn>(_ptr, &PQfinish))
-                 .value()) {}
+                 .value()),
+        caller_in_transaction_(std::make_shared<bool>(false)) {}
 
   PostgresV2Connection(PGconn* _ptr, NoticeHandler _notice_handler);
 
@@ -43,9 +44,16 @@ class SQLGEN_API PostgresV2Connection {
 
   PGconn* ptr() const { return ptr_.get(); }
 
+  bool in_caller_transaction() const { return *caller_in_transaction_; }
+
+  void set_in_caller_transaction(bool _value) {
+    *caller_in_transaction_ = _value;
+  }
+
  private:
   Ref<PGconn> ptr_;
   std::shared_ptr<NoticeHandler> notice_handler_;
+  std::shared_ptr<bool> caller_in_transaction_;
 };
 
 }  // namespace sqlgen::postgres
