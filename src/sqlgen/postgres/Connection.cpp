@@ -21,10 +21,14 @@ Connection::Connection(const Credentials& _credentials)
                 .value()) {}
 
 Result<Nothing> Connection::begin_transaction() noexcept {
+  conn_.set_in_caller_transaction(true);
   return execute("BEGIN TRANSACTION;");
 }
 
-Result<Nothing> Connection::commit() noexcept { return execute("COMMIT;"); }
+Result<Nothing> Connection::commit() noexcept {
+  conn_.set_in_caller_transaction(false);
+  return execute("COMMIT;");
+}
 
 Result<Nothing> Connection::execute(const std::string& _sql) noexcept {
   return PostgresV2Result::make(_sql, conn_).transform([](auto&&) {
@@ -203,7 +207,10 @@ Result<Ref<Iterator>> Connection::read_impl(
   return Iterator::make(sql, conn_);
 }
 
-Result<Nothing> Connection::rollback() noexcept { return execute("ROLLBACK;"); }
+Result<Nothing> Connection::rollback() noexcept {
+  conn_.set_in_caller_transaction(false);
+  return execute("ROLLBACK;");
+}
 
 std::string Connection::to_buffer(
     const std::vector<std::optional<std::string>>& _line) const noexcept {

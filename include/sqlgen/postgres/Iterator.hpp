@@ -69,6 +69,9 @@ class SQLGEN_API Iterator {
 
   /// Whether the end is reached.
   bool end_;
+
+  /// Whether the iterator opened its own transaction around the cursor.
+  bool started_transaction_;
 };
 
 }  // namespace sqlgen::postgres

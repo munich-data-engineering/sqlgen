@@ -117,7 +117,7 @@ jobs:
           sudo ln -s $(which ccache) /usr/local/bin/$CC
           sudo ln -s $(which ccache) /usr/local/bin/$CXX
           $CXX --version
-          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_SQLITE3=OFF
+          cmake -S . -B build -G Ninja -DCMAKE_CXX_STANDARD=20 -DCMAKE_BUILD_TYPE=Release -DSQLGEN_BUILD_TESTS=ON -DSQLGEN_POSTGRES=ON -DSQLGEN_SQLITE3=OFF
           cmake --build build
       - name: Compile
         if: matrix.db == 'duckdb'

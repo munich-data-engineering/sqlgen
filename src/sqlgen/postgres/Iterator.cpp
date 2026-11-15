@@ -1,5 +1,6 @@
 #include "sqlgen/postgres/Iterator.hpp"
 
+#include <cstdio>
 #include <ranges>
 #include <rfl.hpp>
 #include <sstream>
@@ -11,16 +12,23 @@
 namespace sqlgen::postgres {
 
 Iterator::Iterator(const std::string& _sql, const Conn& _conn)
-    : cursor_name_(make_cursor_name()), conn_(_conn), end_(false) {
-  exec(conn_, "BEGIN").value();
+    : cursor_name_(make_cursor_name()),
+      conn_(_conn),
+      end_(false),
+      started_transaction_(!conn_.in_caller_transaction()) {
+  if (started_transaction_) {
+    exec(conn_, "BEGIN").value();
+  }
   exec(conn_, "DECLARE " + cursor_name_ + " CURSOR FOR " + _sql).value();
 }
 
 Iterator::Iterator(Iterator&& _other) noexcept
     : cursor_name_(std::move(_other.cursor_name_)),
       conn_(std::move(_other.conn_)),
-      end_(_other.end_) {
+      end_(_other.end_),
+      started_transaction_(_other.started_transaction_) {
   _other.end_ = true;
+  _other.started_transaction_ = false;
 }
 
 Iterator::~Iterator() { shutdown(); }
@@ -77,14 +85,18 @@ Iterator& Iterator::operator=(Iterator&& _other) noexcept {
   cursor_name_ = std::move(_other.cursor_name_);
   conn_ = std::move(_other.conn_);
   end_ = _other.end_;
+  started_transaction_ = _other.started_transaction_;
   _other.end_ = true;
+  _other.started_transaction_ = false;
   return *this;
 }
 
 void Iterator::shutdown() {
   if (!end_) {
     exec(conn_, "CLOSE " + cursor_name_);
-    exec(conn_, "END");
+    if (started_transaction_) {
+      exec(conn_, "END");
+    }
     end_ = true;
   }
 }
